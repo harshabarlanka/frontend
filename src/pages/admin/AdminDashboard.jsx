@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getDashboardAPI } from '../../api/admin/admin.api'
-import { ORDER_STATUSES } from '../../constants'
+import { ORDER_STATUSES } from '../../constants/constants_index'
 import { formatPrice, formatDate, getErrorMessage } from '../../utils'
 import { InlineLoader } from '../../components/common/Loader'
 import Badge from '../../components/common/Badge'

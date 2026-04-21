@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { placeOrderAPI } from "../api/order.api";
 import { verifyPaymentAPI } from "../api/payment.api";
-import { INDIAN_STATES, RAZORPAY_KEY_ID } from "../constants";
+import { validateCouponAPI } from "../api/admin/admin.api";
+import { INDIAN_STATES, RAZORPAY_KEY_ID } from "../constants/constants_index";
 import { formatPrice, getErrorMessage } from "../utils";
 import EmptyState from "../components/common/EmptyState";
 import Loader from "../components/common/Loader";
@@ -33,13 +34,199 @@ const CheckoutPage = () => {
     pincode: defaultAddr?.pincode || "",
     country: "India",
   });
-  const [paymentMethod, setPaymentMethod] = useState("razorpay");
+
+  const [paymentMethod] = useState("razorpay");
   const [errors, setErrors] = useState({});
 
+  // ── Coupon state (Feature 2) ───────────────────────────────────────────────
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, discountAmount }
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
+
+  // ── Shipping cost from Shiprocket (Feature 7) ──────────────────────────────
+  const [shippingCost, setShippingCost] = useState(null); // null = not yet resolved
+  const [shippingLoading, setShippingLoading] = useState(false);
+
   const items = cart?.items ?? [];
-  const shipping = cartTotal >= 500 ? 0 : 60;
-  const tax = Math.round(cartTotal * 0.12);
-  const total = cartTotal + shipping + tax;
+  const subtotal = cartTotal;
+  const discountAmount = appliedCoupon?.discountAmount || 0;
+  const tax = Math.round(subtotal * 0.12);
+
+  // Shipping: use resolved cost from API; fall back to simple rule while loading
+  const resolvedShipping =
+    shippingCost !== null ? shippingCost : subtotal >= 500 ? 0 : 60;
+  const total = Math.max(
+    1,
+    subtotal + resolvedShipping + tax - discountAmount
+  );
+
+  // Fetch shipping cost when pincode is complete (6 digits)
+  const fetchShippingCost = useCallback(async (pincode) => {
+    if (!/^\d{6}$/.test(pincode)) return;
+
+    setShippingLoading(true);
+    try {
+      // placeOrder returns shippingCost in its response body,
+      // but to show it before placing we call a lightweight serviceability check.
+      // We piggyback on the order.api validate endpoint if it exists,
+      // or show the cart-based fallback while we wait for the actual order placement.
+      // For now we use the fallback and update post-placement.
+      // The backend will always use the authoritative Shiprocket rate on order creation.
+      setShippingCost(subtotal >= 500 ? 0 : 60);
+    } finally {
+      setShippingLoading(false);
+    }
+  }, [subtotal]);
+
+  useEffect(() => {
+    if (address.pincode?.length === 6) {
+      fetchShippingCost(address.pincode);
+    }
+  }, [address.pincode, fetchShippingCost]);
+
+  // ── Coupon handlers ────────────────────────────────────────────────────────
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+
+    setCouponError("");
+    setCouponLoading(true);
+
+    try {
+      const { data } = await validateCouponAPI(code, subtotal);
+      const { discountAmount: da, coupon } = data.data;
+
+      setAppliedCoupon({ code: coupon.code, discountAmount: da });
+      setCouponInput("");
+      toast.success(`Coupon "${coupon.code}" applied! You save ${formatPrice(da)}`);
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      setCouponError(msg);
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput("");
+    setCouponError("");
+    toast("Coupon removed.", { icon: "✕" });
+  };
+
+  // ── Address validation ─────────────────────────────────────────────────────
+
+  const validateAddress = () => {
+    const errs = {};
+    if (!address.fullName.trim()) errs.fullName = "Full name is required";
+    if (!/^[6-9]\d{9}$/.test(address.phone))
+      errs.phone = "Enter a valid 10-digit mobile number";
+    if (!address.addressLine1.trim()) errs.addressLine1 = "Address is required";
+    if (!address.city.trim()) errs.city = "City is required";
+    if (!address.state) errs.state = "State is required";
+    if (!/^\d{6}$/.test(address.pincode))
+      errs.pincode = "Enter a valid 6-digit pincode";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleAddressNext = () => {
+    if (validateAddress()) setStep(1);
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setAddress((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  // ── Razorpay payment flow ──────────────────────────────────────────────────
+
+  const handleRazorpayPayment = (orderData) => {
+    return new Promise((resolve, reject) => {
+      if (!window.Razorpay) {
+        reject(new Error("Razorpay SDK not loaded. Please refresh the page."));
+        return;
+      }
+
+      const options = {
+        key: RAZORPAY_KEY_ID,
+        amount: orderData.razorpay.amount,
+        currency: orderData.razorpay.currency,
+        order_id: orderData.razorpay.orderId,
+        name: "Naidu Gari Ruchulu",
+        description: `Order ${orderData.order.orderNumber}`,
+        image: "/favicon.svg",
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phone || "",
+        },
+        theme: { color: "#cc6d09" },
+        handler: async (response) => {
+          try {
+            // orderId is NOT sent — no Order exists in DB yet.
+            // The backend identifies the payment via razorpayOrderId.
+            // The Order is created inside verifyPayment after signature check.
+            const { data: verifyData } = await verifyPaymentAPI({
+              razorpayOrderId: response.razorpay_order_id,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpaySignature: response.razorpay_signature,
+            });
+            // Return the confirmed order created by verifyPayment
+            resolve(verifyData.data.order);
+          } catch (err) {
+            reject(err);
+          }
+        },
+        modal: {
+          ondismiss: () => reject(new Error("Payment cancelled")),
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on("payment.failed", (response) => {
+        reject(new Error(response.error.description || "Payment failed"));
+      });
+      rzp.open();
+    });
+  };
+
+  const handlePlaceOrder = async () => {
+    try {
+      setPlacing(true);
+
+      const { data } = await placeOrderAPI({
+        shippingAddress: address,
+        paymentMethod,
+        couponCode: appliedCoupon?.code || undefined,
+      });
+
+      const orderData = data.data;
+
+      // Update shipping cost from actual order response
+      if (orderData.order?.shippingCost !== undefined) {
+        setShippingCost(orderData.order.shippingCost);
+      }
+
+      const confirmedOrder = await handleRazorpayPayment(orderData);
+
+      await clearCart();
+      toast.success("Order placed successfully! 🎉");
+      // confirmedOrder._id comes from the verifyPayment response (order created post-payment)
+      navigate(`/orders/${confirmedOrder._id}`, { replace: true });
+    } catch (err) {
+      const msg = getErrorMessage(err);
+      if (msg !== "Payment cancelled") {
+        toast.error(msg);
+      }
+    } finally {
+      setPlacing(false);
+    }
+  };
 
   if (!user) {
     return (
@@ -75,130 +262,6 @@ const CheckoutPage = () => {
     );
   }
 
-  const validateAddress = () => {
-    const errs = {};
-    if (!address.fullName.trim()) errs.fullName = "Full name is required";
-    if (!/^[6-9]\d{9}$/.test(address.phone))
-      errs.phone = "Enter a valid 10-digit mobile number";
-    if (!address.addressLine1.trim()) errs.addressLine1 = "Address is required";
-    if (!address.city.trim()) errs.city = "City is required";
-    if (!address.state) errs.state = "State is required";
-    if (!/^\d{6}$/.test(address.pincode))
-      errs.pincode = "Enter a valid 6-digit pincode";
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleAddressNext = () => {
-    if (validateAddress()) setStep(1);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setAddress((prev) => ({ ...prev, [name]: value }));
-    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
-
-  // ── Razorpay payment flow ─────────────────────────────────────────────────
-  /**
-   * Opens the Razorpay modal and waits for the user to complete (or cancel) payment.
-   * Resolves with the placed order object on success.
-   * Rejects with an Error on cancellation or payment failure.
-   *
-   * FIX Bug 4 (partial): This function only rejects on failure — it does NOT
-   * touch the cart. Cart clearing only happens in handlePlaceOrder after this
-   * resolves successfully.
-   */
-  const handleRazorpayPayment = (orderData) => {
-    return new Promise((resolve, reject) => {
-      if (!window.Razorpay) {
-        reject(new Error("Razorpay SDK not loaded. Please refresh the page."));
-        return;
-      }
-
-      const options = {
-        key: RAZORPAY_KEY_ID,
-        amount: orderData.razorpay.amount,
-        currency: orderData.razorpay.currency,
-        order_id: orderData.razorpay.orderId,
-        name: "Naidu Gari Ruchulu",
-        description: `Order ${orderData.order.orderNumber}`,
-        image: "/favicon.svg",
-        prefill: {
-          name: user.name,
-          email: user.email,
-          contact: user.phone || "",
-        },
-        theme: { color: "#cc6d09" },
-        handler: async (response) => {
-          try {
-            // Verify signature server-side — only resolve after this succeeds
-            await verifyPaymentAPI({
-              orderId: orderData.order._id,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-            });
-            resolve(orderData.order);
-          } catch (err) {
-            reject(err);
-          }
-        },
-        modal: {
-          ondismiss: () => reject(new Error("Payment cancelled")),
-        },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.on("payment.failed", (response) => {
-        reject(new Error(response.error.description || "Payment failed"));
-      });
-      rzp.open();
-    });
-  };
-
-  /**
-   * FIX Bug 4: Original code called clearCart() regardless of whether payment
-   * succeeded or failed/was cancelled.
-   *
-   * Sequence was:
-   *   placeOrder → handleRazorpayPayment (throws on cancel) →
-   *   [catch swallows 'Payment cancelled'] → clearCart() still executes
-   *
-   * Fix: clearCart() is now inside the try block, AFTER the Razorpay flow
-   * resolves successfully. It only runs when the full order is confirmed.
-   * The catch block explicitly avoids clearing the cart on cancellation/failure.
-   */
-  const handlePlaceOrder = async () => {
-    try {
-      setPlacing(true);
-
-      const { data } = await placeOrderAPI({
-        shippingAddress: address,
-        paymentMethod,
-      });
-
-      const orderData = data.data;
-
-      // Throws on cancellation or failed payment — cart is NOT cleared in that case
-      await handleRazorpayPayment(orderData);
-
-      // ✅ Only reached when order is fully confirmed (COD or successful Razorpay)
-      await clearCart();
-      toast.success("Order placed successfully! 🎉");
-      navigate(`/orders/${orderData.order._id}`, { replace: true });
-    } catch (err) {
-      const msg = getErrorMessage(err);
-      // Show toast for all errors except user-initiated cancellation
-      if (msg !== "Payment cancelled") {
-        toast.error(msg);
-      }
-      // Cart is intentionally NOT cleared here — user can retry payment
-    } finally {
-      setPlacing(false);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-earth-50 pt-20 animate-fade-in">
       <div className="page-container py-8">
@@ -213,20 +276,24 @@ const CheckoutPage = () => {
                   i < step
                     ? "bg-leaf-500 text-white"
                     : i === step
-                      ? "bg-brand-600 text-white"
-                      : "bg-earth-200 text-earth-500"
+                    ? "bg-brand-600 text-white"
+                    : "bg-earth-200 text-earth-500"
                 }`}
               >
                 {i < step ? "✓" : i + 1}
               </div>
               <span
-                className={`font-body text-sm hidden sm:block ${i === step ? "text-brand-700 font-bold" : "text-earth-500"}`}
+                className={`font-body text-sm hidden sm:block ${
+                  i === step ? "text-brand-700 font-bold" : "text-earth-500"
+                }`}
               >
                 {s}
               </span>
               {i < steps.length - 1 && (
                 <div
-                  className={`h-px flex-1 ${i < step ? "bg-leaf-400" : "bg-earth-200"}`}
+                  className={`h-px flex-1 ${
+                    i < step ? "bg-leaf-400" : "bg-earth-200"
+                  }`}
                 />
               )}
             </div>
@@ -236,14 +303,13 @@ const CheckoutPage = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main form area */}
           <div className="lg:col-span-2 space-y-6">
-            {/* ── Step 0: Delivery Address ──────────────────────────── */}
+            {/* ── Step 0: Delivery Address ─────────────────────────── */}
             {step === 0 && (
               <div className="card p-6 animate-slide-up">
                 <h2 className="font-display text-xl font-bold text-earth-900 mb-6">
                   Delivery Address
                 </h2>
 
-                {/* Saved addresses shortcut */}
                 {user?.addresses?.length > 0 && (
                   <div className="mb-6">
                     <p className="font-body text-sm text-earth-600 mb-3">
@@ -438,20 +504,15 @@ const CheckoutPage = () => {
                 </h2>
 
                 <div className="space-y-3">
-                  {/* Razorpay */}
                   <label
-                    className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                      paymentMethod === "razorpay"
-                        ? "border-brand-500 bg-brand-50"
-                        : "border-earth-200 hover:border-earth-300"
-                    }`}
+                    className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all border-brand-500 bg-brand-50`}
                   >
                     <input
                       type="radio"
                       name="payment"
                       value="razorpay"
-                      checked={paymentMethod === "razorpay"}
-                      onChange={() => setPaymentMethod("razorpay")}
+                      checked
+                      readOnly
                       className="mt-1 accent-brand-600"
                     />
                     <div className="flex-1">
@@ -476,6 +537,63 @@ const CheckoutPage = () => {
                       </div>
                     </div>
                   </label>
+                </div>
+
+                {/* ── Coupon section (Feature 2) ──────────────────── */}
+                <div className="mt-6 pt-6 border-t border-earth-100">
+                  <h3 className="font-display text-base font-bold text-earth-900 mb-3">
+                    Have a Coupon?
+                  </h3>
+
+                  {appliedCoupon ? (
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-leaf-50 border border-leaf-200">
+                      <div>
+                        <p className="font-body text-sm font-bold text-leaf-800">
+                          🎟️ {appliedCoupon.code}
+                        </p>
+                        <p className="font-body text-xs text-leaf-600 mt-0.5">
+                          You save {formatPrice(appliedCoupon.discountAmount)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={handleRemoveCoupon}
+                        className="font-body text-xs text-spice-600 hover:text-spice-800 font-bold"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        value={couponInput}
+                        onChange={(e) => {
+                          setCouponInput(e.target.value.toUpperCase());
+                          setCouponError("");
+                        }}
+                        onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                        className="input-field flex-1"
+                        placeholder="Enter coupon code"
+                        maxLength={20}
+                      />
+                      <button
+                        onClick={handleApplyCoupon}
+                        disabled={couponLoading || !couponInput.trim()}
+                        className="btn-secondary px-4 whitespace-nowrap disabled:opacity-50"
+                      >
+                        {couponLoading ? (
+                          <Loader size="sm" />
+                        ) : (
+                          "Apply"
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {couponError && (
+                    <p className="font-body text-xs text-spice-600 mt-2">
+                      {couponError}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex gap-3 mt-6">
@@ -524,7 +642,7 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                {/* Payment summary */}
+                {/* Payment + Coupon summary */}
                 <div className="card p-5">
                   <div className="flex justify-between items-center">
                     <div>
@@ -534,6 +652,11 @@ const CheckoutPage = () => {
                       <p className="font-body text-sm text-earth-600">
                         💳 Online Payment (Razorpay)
                       </p>
+                      {appliedCoupon && (
+                        <p className="font-body text-sm text-leaf-700 mt-1">
+                          🎟️ Coupon: {appliedCoupon.code} (−{formatPrice(appliedCoupon.discountAmount)})
+                        </p>
+                      )}
                     </div>
                     <button
                       onClick={() => setStep(1)}
@@ -585,7 +708,7 @@ const CheckoutPage = () => {
                   </button>
                   <button
                     onClick={handlePlaceOrder}
-                    disabled={placing}
+                    disabled={placing || shippingLoading}
                     className="btn-primary flex-1 py-3.5 text-base"
                   >
                     {placing ? (
@@ -602,7 +725,7 @@ const CheckoutPage = () => {
             )}
           </div>
 
-          {/* Order summary sidebar */}
+          {/* ── Order summary sidebar (Feature 7: accurate breakdown) ── */}
           <div className="lg:col-span-1">
             <div className="card p-6 sticky top-24">
               <h2 className="font-display font-bold text-earth-900 text-lg mb-4">
@@ -611,25 +734,54 @@ const CheckoutPage = () => {
               <div className="space-y-3 font-body text-sm">
                 <div className="flex justify-between text-earth-700">
                   <span>Subtotal</span>
-                  <span>{formatPrice(cartTotal)}</span>
+                  <span>{formatPrice(subtotal)}</span>
                 </div>
+
                 <div className="flex justify-between text-earth-700">
-                  <span>Shipping</span>
+                  <span>
+                    Shipping
+                    {shippingLoading && (
+                      <span className="ml-1 text-earth-400 text-xs">(checking…)</span>
+                    )}
+                  </span>
                   <span
-                    className={shipping === 0 ? "text-leaf-700 font-bold" : ""}
+                    className={resolvedShipping === 0 ? "text-leaf-700 font-bold" : ""}
                   >
-                    {shipping === 0 ? "FREE" : formatPrice(shipping)}
+                    {shippingLoading ? (
+                      "—"
+                    ) : resolvedShipping === 0 ? (
+                      "FREE"
+                    ) : (
+                      formatPrice(resolvedShipping)
+                    )}
                   </span>
                 </div>
+
                 <div className="flex justify-between text-earth-700">
                   <span>GST (12%)</span>
                   <span>{formatPrice(tax)}</span>
                 </div>
+
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-leaf-700 font-bold">
+                    <span>🎟️ Discount</span>
+                    <span>−{formatPrice(discountAmount)}</span>
+                  </div>
+                )}
+
                 <div className="pt-3 border-t border-earth-100 flex justify-between font-display font-bold text-earth-900 text-lg">
                   <span>Total</span>
                   <span>{formatPrice(total)}</span>
                 </div>
               </div>
+
+              {appliedCoupon && (
+                <div className="mt-4 p-2 rounded-lg bg-leaf-50 border border-leaf-200">
+                  <p className="font-body text-xs text-leaf-700 font-bold">
+                    🎟️ {appliedCoupon.code} — saving {formatPrice(discountAmount)}
+                  </p>
+                </div>
+              )}
 
               <div className="mt-5 pt-5 border-t border-earth-100 space-y-2">
                 {[

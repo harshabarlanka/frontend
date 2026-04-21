@@ -28,14 +28,14 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminOrderDetail = lazy(
-  () => import("./pages/admin/AdminOrderDetailPage"),
+  () => import("./pages/admin/AdminOrderDetailPage")
 );
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons")); // Feature 2
 
 // ── Layout wrappers ──────────────────────────────────────────────────────────
 
-/** Standard storefront layout: Navbar + content + Footer */
 const MainLayout = ({ children }) => (
   <div className="flex flex-col min-h-screen">
     <Navbar />
@@ -44,12 +44,10 @@ const MainLayout = ({ children }) => (
   </div>
 );
 
-/** Auth pages: full-screen, no nav */
 const AuthLayout = ({ children }) => (
   <div className="flex flex-col min-h-screen">{children}</div>
 );
 
-/** Admin layout wrapper: AdminRoute guard + AdminLayout shell */
 const AdminPage = ({ children }) => (
   <AdminRoute>
     <AdminLayout>{children}</AdminLayout>
@@ -156,9 +154,7 @@ const App = () => (
         }
       />
 
-      {/* ── Admin routes (role === 'admin' required) ───────────────────
-           AdminPage wraps AdminRoute + AdminLayout — no Navbar/Footer.
-           /admin redirects to /admin/dashboard for convenience.        */}
+      {/* ── Admin routes (role === 'admin' required) ─────────────────── */}
       <Route
         path="/admin"
         element={
@@ -204,6 +200,15 @@ const App = () => (
         element={
           <AdminPage>
             <AdminUsers />
+          </AdminPage>
+        }
+      />
+      {/* Feature 2: Coupon management */}
+      <Route
+        path="/admin/coupons"
+        element={
+          <AdminPage>
+            <AdminCoupons />
           </AdminPage>
         }
       />

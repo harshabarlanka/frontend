@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createProductAPI, updateProductAPI } from '../../api/admin/admin.api'
 import { uploadImagesAPI } from '../../api/admin/upload.api'
-import { CATEGORIES } from '../../constants'
+import { CATEGORIES } from '../../constants/constants_index'
 import { getErrorMessage } from '../../utils'
 import Loader from '../common/Loader'
 import toast from 'react-hot-toast'
@@ -15,9 +15,13 @@ const EMPTY_FORM = {
   description: '',
   ingredients: '',
   category:    'veg-pickles',
-  images:      [],   // array of Cloudinary URLs
+  images:      [],
   tags:        '',
+  // Feature 6: shipping dimensions
   weight:      '500',
+  length:      '15',
+  breadth:     '10',
+  height:      '10',
   taxRate:     '12',
   hsn:         '2001',
   isFeatured:  false,
@@ -30,9 +34,13 @@ const toForm = (product) => ({
   description: product.description || '',
   ingredients: product.ingredients || '',
   category:    product.category    || 'veg-pickles',
-  images:      product.images      || [],           // already URLs from DB
+  images:      product.images      || [],
   tags:        (product.tags || []).join(', '),
+  // Feature 6: dimensions
   weight:      String(product.weight  ?? 500),
+  length:      String(product.length  ?? 15),
+  breadth:     String(product.breadth ?? 10),
+  height:      String(product.height  ?? 10),
   taxRate:     String(product.taxRate ?? 12),
   hsn:         product.hsn         || '2001',
   isFeatured:  !!product.isFeatured,
@@ -54,9 +62,13 @@ const toPayload = (form) => ({
   description: form.description.trim(),
   ingredients: form.ingredients.trim() || undefined,
   category:    form.category,
-  images:      form.images,          // already an array of URLs
+  images:      form.images,
   tags:        form.tags.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
+  // Feature 6: dimensions
   weight:      Number(form.weight)  || 500,
+  length:      Number(form.length)  || 15,
+  breadth:     Number(form.breadth) || 10,
+  height:      Number(form.height)  || 10,
   taxRate:     Number(form.taxRate) || 12,
   hsn:         form.hsn.trim() || '2001',
   isFeatured:  form.isFeatured,
@@ -70,7 +82,6 @@ const toPayload = (form) => ({
   })),
 })
 
-// Defined outside ProductForm to prevent remount / focus-loss on render.
 const Field = ({ label, name, required, errors, children }) => (
   <div>
     <label className="block font-body text-sm font-bold text-earth-700 mb-1">
@@ -96,7 +107,6 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
     setErrors({})
   }, [product])
 
-  // ── Field helpers ─────────────────────────────────────────────────────────
   const set = (field, value) => {
     setForm((p) => ({ ...p, [field]: value }))
     setErrors((p) => ({ ...p, [field]: '' }))
@@ -114,7 +124,6 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
   const addVariant    = () => setForm((p) => ({ ...p, variants: [...p.variants, EMPTY_VARIANT()] }))
   const removeVariant = (i) => setForm((p) => ({ ...p, variants: p.variants.filter((_, idx) => idx !== i) }))
 
-  // ── Image upload ──────────────────────────────────────────────────────────
   const handleImageSelect = async (e) => {
     const selected = Array.from(e.target.files || [])
     if (!selected.length) return
@@ -141,7 +150,6 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
       setErrors((p) => ({ ...p, images: 'Image upload failed. Please try again.' }))
     } finally {
       setUploading(false)
-      // Reset file input so the same file can be re-selected after removal
       if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
@@ -150,13 +158,18 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
     setForm((p) => ({ ...p, images: p.images.filter((_, i) => i !== index) }))
   }
 
-  // ── Validation ────────────────────────────────────────────────────────────
   const validate = () => {
     const errs = {}
     if (!form.name.trim())        errs.name        = 'Name is required'
     if (!form.description.trim()) errs.description = 'Description is required'
     if (!form.category)           errs.category    = 'Category is required'
     if (form.variants.length === 0) errs.variants  = 'At least one variant is required'
+
+    // Feature 6: dimension validation
+    if (!form.weight || Number(form.weight) < 1) errs.weight = 'Weight must be at least 1g'
+    if (!form.length || Number(form.length) <= 0) errs.length = 'Length must be positive'
+    if (!form.breadth || Number(form.breadth) <= 0) errs.breadth = 'Breadth must be positive'
+    if (!form.height || Number(form.height) <= 0) errs.height = 'Height must be positive'
 
     form.variants.forEach((v, i) => {
       if (!v.size.trim())      errs[`variant_${i}_size`]  = 'Size required'
@@ -169,7 +182,6 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
     return Object.keys(errs).length === 0
   }
 
-  // ── Submit ────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) {
@@ -199,7 +211,6 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
   }
 
   return (
-    /* Backdrop */
     <div className="fixed inset-0 z-50 flex items-start justify-center bg-earth-950/60 overflow-y-auto py-8 px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl animate-slide-up">
         {/* Header */}
@@ -243,12 +254,13 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
               </div>
             </Field>
 
-            <Field label="Weight (g)" name="weight" errors={errors}>
+            <Field label="Weight (g) *" name="weight" errors={errors}>
               <input
                 type="number"
                 value={form.weight}
                 onChange={(e) => set('weight', e.target.value)}
                 className="input-field"
+                placeholder="500"
                 min={1}
               />
             </Field>
@@ -282,7 +294,6 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
                 <span className="font-normal text-earth-400">(max {MAX_IMAGES})</span>
               </label>
 
-              {/* File picker */}
               {form.images.length < MAX_IMAGES && (
                 <label
                   className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed
@@ -308,7 +319,7 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
                     <>
                       <span className="text-2xl">🖼️</span>
                       <span className="font-body text-sm text-earth-500 text-center">
-                        Click to select images &mdash; JPG, PNG, WebP · max 5 MB each
+                        Click to select images — JPG, PNG, WebP · max 5 MB each
                         <br />
                         <span className="text-earth-400 text-xs">
                           {MAX_IMAGES - form.images.length} slot(s) remaining
@@ -323,7 +334,6 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
                 <p className="font-body text-xs text-spice-600 mt-1">{errors.images}</p>
               )}
 
-              {/* Preview grid */}
               {form.images.length > 0 && (
                 <div className="mt-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
                   {form.images.map((url, i) => (
@@ -348,8 +358,71 @@ const ProductForm = ({ product = null, onClose, onSaved }) => {
                 </div>
               )}
             </div>
-            {/* ── /Image Upload ─────────────────────────────────────────── */}
+          </div>
 
+          {/* ── Feature 6: Shipping Dimensions ───────────────────────────── */}
+          <div>
+            <h3 className="font-display text-base font-bold text-earth-900 mb-3">
+              Shipping Dimensions
+              <span className="font-body text-xs text-earth-400 font-normal ml-2">
+                Used for accurate Shiprocket shipping cost calculation
+              </span>
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-earth-50 rounded-xl border border-earth-200">
+              <Field label="Length (cm) *" name="length" errors={errors}>
+                <input
+                  type="number"
+                  value={form.length}
+                  onChange={(e) => set('length', e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="15"
+                  min={0.1}
+                  step={0.1}
+                />
+              </Field>
+
+              <Field label="Breadth (cm) *" name="breadth" errors={errors}>
+                <input
+                  type="number"
+                  value={form.breadth}
+                  onChange={(e) => set('breadth', e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="10"
+                  min={0.1}
+                  step={0.1}
+                />
+              </Field>
+
+              <Field label="Height (cm) *" name="height" errors={errors}>
+                <input
+                  type="number"
+                  value={form.height}
+                  onChange={(e) => set('height', e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="10"
+                  min={0.1}
+                  step={0.1}
+                />
+              </Field>
+
+              <Field label="Weight (g) *" name="weight" errors={errors}>
+                <input
+                  type="number"
+                  value={form.weight}
+                  onChange={(e) => set('weight', e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="500"
+                  min={1}
+                />
+              </Field>
+            </div>
+            <p className="font-body text-xs text-earth-400 mt-2">
+              L × B × H in centimetres. Weight in grams. These are per-unit dimensions for packaging.
+            </p>
+          </div>
+
+          {/* ── Meta ──────────────────────────────────────────────────────── */}
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Tags (comma-separated)" name="tags" errors={errors}>
               <input
                 value={form.tags}

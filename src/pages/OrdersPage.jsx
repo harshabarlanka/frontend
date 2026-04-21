@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getMyOrdersAPI } from '../api/order.api'
-import { ORDER_STATUSES } from '../constants'
+import { ORDER_STATUSES } from '../constants/constants_index'
 import { formatPrice, formatDate, getErrorMessage } from '../utils'
 import { InlineLoader } from '../components/common/Loader'
 import EmptyState from '../components/common/EmptyState'

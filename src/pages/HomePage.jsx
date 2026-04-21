@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getProductsAPI, getCategoriesAPI } from '../api/product.api'
 import ProductGrid from '../components/product/ProductGrid'
-import { CATEGORIES } from '../constants'
+import { CATEGORIES } from '../constants/constants_index'
 
 const TESTIMONIALS = [
   { name: 'Priya S.',    city: 'Bengaluru', text: 'The veg pickles are just like my dadi used to make. Absolutely authentic!', stars: 5 },

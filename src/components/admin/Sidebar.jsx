@@ -5,6 +5,7 @@ const NAV_ITEMS = [
   { to: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
   { to: '/admin/orders',    icon: '📦', label: 'Orders'    },
   { to: '/admin/products',  icon: '🫙', label: 'Products'  },
+  { to: '/admin/coupons',   icon: '🎟️', label: 'Coupons'   }, // Feature 2
   { to: '/admin/users',     icon: '👥', label: 'Users'     },
 ]
 
@@ -36,7 +37,6 @@ const Sidebar = ({ collapsed = false, onClose }) => {
             <p className="font-body text-earth-500 text-xs">Admin Panel</p>
           </div>
         )}
-        {/* Mobile close button */}
         {onClose && (
           <button
             onClick={onClose}

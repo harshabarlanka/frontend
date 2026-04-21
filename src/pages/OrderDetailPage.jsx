@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getOrderAPI, cancelOrderAPI, trackOrderAPI } from '../api/order.api'
-import { ORDER_STATUSES } from '../constants'
+import { ORDER_STATUSES } from '../constants/constants_index'
 import { formatPrice, formatDate, formatDateTime, getErrorMessage } from '../utils'
 import { PageLoader } from '../components/common/Loader'
 import ErrorState from '../components/common/ErrorState'

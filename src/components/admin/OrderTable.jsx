@@ -1,95 +1,136 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { markReadyForPickupAPI } from "../../api/admin/admin.api";
 import {
   updateOrderStatusAPI,
   shipOrderAPI,
   adminCancelOrderAPI,
-} from '../../api/admin/admin.api'
-import { ORDER_STATUSES } from '../../constants'
-import { formatPrice, formatDate, getErrorMessage } from '../../utils'
-import Loader from '../common/Loader'
-import Badge from '../common/Badge'
-import toast from 'react-hot-toast'
+} from "../../api/admin/admin.api";
+import { ORDER_STATUSES } from "../../constants/constants_index";
+import { formatPrice, formatDate, getErrorMessage } from "../../utils";
+import Loader from "../common/Loader";
+import Badge from "../common/Badge";
+import toast from "react-hot-toast";
 
 // ── Status badge variant mapping ─────────────────────────────────────────────
 const STATUS_VARIANT = {
-  pending:   'warning',
-  confirmed: 'info',
-  packed:    'purple',
-  shipped:   'brand',
-  delivered: 'success',
-  cancelled: 'danger',
-  refunded:  'default',
-}
+  pending: "warning",
+  confirmed: "info",
+  preparing: "purple",
+  ready_for_pickup: "purple",
+  shipped: "brand",
+  delivered: "success",
+  cancelled: "danger",
+  refunded: "default",
+};
 
-// ── Valid next statuses per current status ────────────────────────────────────
+const STATUS_LABELS = {
+  pending: "Pending",
+  confirmed: "Order Confirmed",
+  preparing: "Preparing Order",
+  ready_for_pickup: "Ready for Dispatch",
+  shipped: "Shipped",
+  delivered: "Delivered",
+  cancelled: "Cancelled",
+  refunded: "Refunded",
+};
+
 const NEXT_ACTIONS = {
-  pending:   [{ status: 'confirmed', label: 'Confirm',  icon: '✅' }],
-  confirmed: [{ status: 'packed',    label: 'Mark Packed', icon: '📦' }],
-  packed:    [], // ship is handled by separate "Ship" button (Shiprocket)
-  shipped:   [{ status: 'delivered', label: 'Mark Delivered', icon: '🏠' }],
+  pending: [{ status: "confirmed", label: "Confirm Order", icon: "✅" }],
+  confirmed: [{ status: "preparing", label: "Start Preparing", icon: "🍳" }],
+  preparing: [{ status: "ready_for_pickup", label: "Mark Ready", icon: "📦" }],
+  ready_for_pickup: [], // ship is handled by separate "Create Shipment" button
+  shipped: [],
   delivered: [],
   cancelled: [],
-  refunded:  [],
-}
+  refunded: [],
+};
 
 // ── Single row ───────────────────────────────────────────────────────────────
 const OrderRow = ({ order, onUpdated }) => {
-  const [busy, setBusy] = useState(null) // tracks which action is loading
+  const [busy, setBusy] = useState(null); // tracks which action is loading
 
-  const statusInfo    = ORDER_STATUSES[order.status] || { label: order.status }
-  const statusVariant = STATUS_VARIANT[order.status] || 'default'
-  const nextActions   = NEXT_ACTIONS[order.status] || []
+  const statusInfo = {
+    label:
+      STATUS_LABELS[order.status] ||
+      ORDER_STATUSES[order.status]?.label ||
+      order.status,
+  };
+  const statusVariant = STATUS_VARIANT[order.status] || "default";
+  const nextActions = NEXT_ACTIONS[order.status] || [];
 
-  // Update status (confirm / mark-packed / mark-delivered)
+  // Update status (confirm / start-preparing / mark-ready)
   const handleStatusUpdate = async (newStatus, label) => {
-    if (!window.confirm(`Mark this order as "${label}"?`)) return
+    if (!window.confirm(`Mark this order as "${label}"?`)) return;
+
     try {
-      setBusy(newStatus)
-      const { data } = await updateOrderStatusAPI(order._id, newStatus)
-      toast.success(`Order ${data.data.order.orderNumber} → ${label}`)
-      onUpdated(data.data.order)
+      setBusy(newStatus);
+
+      let data;
+
+      // 🔥 SPECIAL CASE: preparing → ready_for_pickup
+      if (newStatus === "ready_for_pickup") {
+        const res = await markReadyForPickupAPI(order._id);
+        data = res.data;
+      } else {
+        const res = await updateOrderStatusAPI(order._id, newStatus);
+        data = res.data;
+      }
+
+      toast.success(`Order ${data.data.order.orderNumber} → ${label}`);
+      onUpdated(data.data.order);
     } catch (err) {
-      toast.error(getErrorMessage(err))
+      toast.error(getErrorMessage(err));
     } finally {
-      setBusy(null)
+      setBusy(null);
     }
-  }
+  };
 
   // Ship via Shiprocket (POST /admin/orders/:id/ship)
   const handleShip = async () => {
-    if (!window.confirm(`Push order ${order.orderNumber} to Shiprocket and ship?`)) return
+    if (
+      !window.confirm(`Push order ${order.orderNumber} to Shiprocket and ship?`)
+    )
+      return;
     try {
-      setBusy('ship')
-      const { data } = await shipOrderAPI(order._id)
+      setBusy("ship");
+      const { data } = await shipOrderAPI(order._id);
       toast.success(
-        `Shipped! AWB: ${data.data.order.awbCode} via ${data.data.order.courierName}`
-      )
-      onUpdated(data.data.order)
+        `Shipped! AWB: ${data.data.order.awbCode} via ${data.data.order.courierName}`,
+      );
+      onUpdated(data.data.order);
     } catch (err) {
-      toast.error(getErrorMessage(err))
+      toast.error(getErrorMessage(err));
     } finally {
-      setBusy(null)
+      setBusy(null);
     }
-  }
+  };
 
   // Cancel order
   const handleCancel = async () => {
-    if (!window.confirm(`Cancel order ${order.orderNumber}? This cannot be undone.`)) return
+    if (
+      !window.confirm(
+        `Cancel order ${order.orderNumber}? This cannot be undone.`,
+      )
+    )
+      return;
     try {
-      setBusy('cancel')
-      await adminCancelOrderAPI(order._id)
-      toast.success(`Order ${order.orderNumber} cancelled`)
-      onUpdated({ ...order, status: 'cancelled' })
+      setBusy("cancel");
+      await adminCancelOrderAPI(order._id);
+      toast.success(`Order ${order.orderNumber} cancelled`);
+      onUpdated({ ...order, status: "cancelled" });
     } catch (err) {
-      toast.error(getErrorMessage(err))
+      toast.error(getErrorMessage(err));
     } finally {
-      setBusy(null)
+      setBusy(null);
     }
-  }
+  };
 
-  const isCancellable = ['pending', 'confirmed', 'packed'].includes(order.status)
-  const canShip       = order.status === 'packed' && !order.shiprocketOrderId
+  const isCancellable = ["pending", "confirmed", "preparing"].includes(
+    order.status,
+  );
+  const canShip =
+    order.status === "ready_for_pickup" && !order.shiprocketOrderId;
 
   return (
     <tr className="hover:bg-earth-50 transition-colors border-b border-earth-100 last:border-0">
@@ -101,36 +142,50 @@ const OrderRow = ({ order, onUpdated }) => {
         >
           {order.orderNumber}
         </Link>
-        <p className="font-body text-xs text-earth-400 mt-0.5">{formatDate(order.createdAt)}</p>
+        <p className="font-body text-xs text-earth-400 mt-0.5">
+          {formatDate(order.createdAt)}
+        </p>
       </td>
 
       {/* Customer */}
       <td className="px-4 py-3 whitespace-nowrap">
         <p className="font-body text-sm font-bold text-earth-900">
-          {order.userId?.name || '—'}
+          {order.userId?.name || "—"}
         </p>
         <p className="font-body text-xs text-earth-400 truncate max-w-[160px]">
-          {order.userId?.email || '—'}
+          {order.userId?.email || "—"}
         </p>
       </td>
 
       {/* Amount */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <p className="font-body text-sm font-bold text-earth-900">{formatPrice(order.total)}</p>
-        <p className="font-body text-xs text-earth-400 capitalize">{order.paymentMethod}</p>
+        <p className="font-body text-sm font-bold text-earth-900">
+          {formatPrice(order.total)}
+        </p>
+        <p className="font-body text-xs text-earth-400 capitalize">
+          {order.paymentMethod}
+        </p>
       </td>
 
       {/* Status */}
       <td className="px-4 py-3 whitespace-nowrap">
         <Badge variant={statusVariant}>{statusInfo.label}</Badge>
-        {order.awbCode && (
-          <p className="font-mono text-xs text-earth-400 mt-1">AWB: {order.awbCode}</p>
-        )}
+        {order.awbCode ? (
+          <p className="font-mono text-xs text-earth-400 mt-1">
+            AWB: {order.awbCode}
+          </p>
+        ) : order.status === "shipped" ? (
+          <p className="font-body text-xs text-earth-400 mt-1 italic">
+            Not yet shipped
+          </p>
+        ) : null}
       </td>
 
       {/* Items count */}
       <td className="px-4 py-3 whitespace-nowrap text-center">
-        <span className="font-body text-sm text-earth-700">{order.items?.length ?? 0}</span>
+        <span className="font-body text-sm text-earth-700">
+          {order.items?.length ?? 0}
+        </span>
       </td>
 
       {/* Actions */}
@@ -151,7 +206,7 @@ const OrderRow = ({ order, onUpdated }) => {
             </button>
           ))}
 
-          {/* Ship via Shiprocket */}
+          {/* Create Shipment via Shiprocket */}
           {canShip && (
             <button
               onClick={handleShip}
@@ -160,14 +215,16 @@ const OrderRow = ({ order, onUpdated }) => {
                          font-body font-bold bg-indigo-50 text-indigo-700 border border-indigo-200
                          hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {busy === 'ship' ? <Loader size="sm" /> : '🚚'}
-              Ship (Shiprocket)
+              {busy === "ship" ? <Loader size="sm" /> : "🚚"}
+              Create Shipment
             </button>
           )}
 
-          {/* Already shipped via Shiprocket */}
-          {order.status === 'packed' && order.shiprocketOrderId && (
-            <span className="font-body text-xs text-indigo-500 italic">Shipment created</span>
+          {/* Shipment already created */}
+          {order.status === "ready_for_pickup" && order.shiprocketOrderId && (
+            <span className="font-body text-xs text-indigo-500 italic">
+              Shipment created
+            </span>
           )}
 
           {/* Cancel */}
@@ -179,37 +236,44 @@ const OrderRow = ({ order, onUpdated }) => {
                          font-body font-bold bg-spice-50 text-spice-700 border border-spice-200
                          hover:bg-spice-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {busy === 'cancel' ? <Loader size="sm" /> : '✕'}
+              {busy === "cancel" ? <Loader size="sm" /> : "✕"}
               Cancel
             </button>
           )}
 
           {/* Terminal states — no actions */}
-          {['delivered', 'cancelled', 'refunded'].includes(order.status) &&
-            !nextActions.length && (
-            <span className="font-body text-xs text-earth-400 italic">—</span>
-          )}
+          {["shipped", "delivered", "cancelled", "refunded"].includes(
+            order.status,
+          ) &&
+            !nextActions.length &&
+            !canShip && (
+              <span className="font-body text-xs text-earth-400 italic">—</span>
+            )}
         </div>
       </td>
     </tr>
-  )
-}
+  );
+};
 
 // ── Table shell ───────────────────────────────────────────────────────────────
 const OrderTable = ({ orders, onOrderUpdated }) => {
   // When a single order is updated (status change), replace it in-place
   const handleUpdated = (updatedOrder) => {
-    onOrderUpdated(updatedOrder)
-  }
+    onOrderUpdated(updatedOrder);
+  };
 
   if (orders.length === 0) {
     return (
       <div className="text-center py-16">
         <div className="text-5xl mb-3">📭</div>
-        <p className="font-display text-xl text-earth-700 mb-1">No orders found</p>
-        <p className="font-body text-earth-400 text-sm">Try adjusting your filters</p>
+        <p className="font-display text-xl text-earth-700 mb-1">
+          No orders found
+        </p>
+        <p className="font-body text-earth-400 text-sm">
+          Try adjusting your filters
+        </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -217,15 +281,17 @@ const OrderTable = ({ orders, onOrderUpdated }) => {
       <table className="w-full min-w-[800px]">
         <thead>
           <tr className="border-b border-earth-200 bg-earth-50">
-            {['Order', 'Customer', 'Amount', 'Status', 'Items', 'Actions'].map((h) => (
-              <th
-                key={h}
-                className="px-4 py-3 text-left font-body text-xs font-bold text-earth-500
+            {["Order", "Customer", "Amount", "Status", "Items", "Actions"].map(
+              (h) => (
+                <th
+                  key={h}
+                  className="px-4 py-3 text-left font-body text-xs font-bold text-earth-500
                            uppercase tracking-wide whitespace-nowrap"
-              >
-                {h}
-              </th>
-            ))}
+                >
+                  {h}
+                </th>
+              ),
+            )}
           </tr>
         </thead>
         <tbody>
@@ -235,7 +301,7 @@ const OrderTable = ({ orders, onOrderUpdated }) => {
         </tbody>
       </table>
     </div>
-  )
-}
+  );
+};
 
-export default OrderTable
+export default OrderTable;

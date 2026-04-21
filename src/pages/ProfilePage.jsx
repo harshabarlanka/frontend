@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { updateProfileAPI, changePasswordAPI, addAddressAPI, deleteAddressAPI } from '../api/user.api'
-import { INDIAN_STATES } from '../constants'
+import { INDIAN_STATES } from '../constants/constants_index'
 import { getErrorMessage } from '../utils'
 import Loader from '../components/common/Loader'
 import toast from 'react-hot-toast'

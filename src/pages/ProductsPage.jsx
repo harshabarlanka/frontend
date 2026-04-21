@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { getProductsAPI } from '../api/product.api'
 import ProductGrid from '../components/product/ProductGrid'
 import Pagination from '../components/common/Pagination'
-import { CATEGORIES, SORT_OPTIONS, PRICE_RANGES } from '../constants'
+import { CATEGORIES, SORT_OPTIONS, PRICE_RANGES } from '../constants/constants_index'
 
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams()

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getAdminProductsAPI, deleteProductAPI } from '../../api/admin/admin.api'
-import { CATEGORIES } from '../../constants'
+import { CATEGORIES } from '../../constants/constants_index'
 import { formatPrice, getErrorMessage } from '../../utils'
 import { InlineLoader } from '../../components/common/Loader'
 import ErrorState from '../../components/common/ErrorState'

@@ -1,4 +1,4 @@
-import { ORDER_STATUSES } from '../../constants'
+import { ORDER_STATUSES } from '../../constants/constants_index'
 import Badge from '../common/Badge'
 
 const STEPS = [

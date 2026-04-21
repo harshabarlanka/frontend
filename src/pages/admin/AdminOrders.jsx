@@ -1,13 +1,23 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getAdminOrdersAPI } from '../../api/admin/admin.api'
-import { ORDER_STATUSES } from '../../constants'
+import { ORDER_STATUSES } from '../../constants/constants_index'
 import { getErrorMessage } from '../../utils'
 import { InlineLoader } from '../../components/common/Loader'
 import ErrorState from '../../components/common/ErrorState'
 import OrderTable from '../../components/admin/OrderTable'
 
-const STATUS_FILTERS = ['all', 'pending', 'confirmed', 'packed', 'shipped', 'delivered', 'cancelled']
-const PAYMENT_FILTERS = ['all', 'razorpay', 'cod']
+const STATUS_FILTERS = [
+  'all',
+  'confirmed',
+  'preparing',
+  'ready_for_pickup',
+  'shipped',
+  'delivered',
+  'cancelled',
+  'rto',
+  'refunded'
+]
+const PAYMENT_FILTERS = ['all', 'razorpay']
 
 const AdminOrders = () => {
   const [orders, setOrders]     = useState([])
