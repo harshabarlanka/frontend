@@ -9,7 +9,7 @@ import { PageLoader } from "./components/common/Loader";
 // Admin components
 import AdminRoute from "./components/admin/AdminRoute";
 import AdminLayout from "./components/admin/AdminLayout";
-
+import ResetPassword from "./pages/ResetPassword";
 // Eagerly loaded critical paths
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
@@ -218,6 +218,14 @@ const App = () => (
         element={
           <AuthLayout>
             <ForgotPassword />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <AuthLayout>
+            <ResetPassword />
           </AuthLayout>
         }
       />
