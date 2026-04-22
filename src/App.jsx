@@ -14,6 +14,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import ForgotPassword from "./pages/ForgotPassword";
 
 // Lazily loaded user pages
 const ProductsPage = lazy(() => import("./pages/ProductsPage"));
@@ -28,7 +29,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminOrderDetail = lazy(
-  () => import("./pages/admin/AdminOrderDetailPage")
+  () => import("./pages/admin/AdminOrderDetailPage"),
 );
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
@@ -212,7 +213,14 @@ const App = () => (
           </AdminPage>
         }
       />
-
+      <Route
+        path="/forgot-password"
+        element={
+          <AuthLayout>
+            <ForgotPassword />
+          </AuthLayout>
+        }
+      />
       {/* ── 404 ──────────────────────────────────────────────────────── */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
