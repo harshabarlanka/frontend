@@ -1,35 +1,39 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useCart } from '../../context/CartContext'
-import { useAuth } from '../../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
-import StarRating from '../common/StarRating'
-import { formatPrice, getErrorMessage } from '../../utils'
-import toast from 'react-hot-toast'
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import StarRating from "../common/StarRating";
+import { formatPrice, getErrorMessage } from "../../utils";
+import toast from "react-hot-toast";
 
 const ProductCard = ({ product }) => {
-  const { user } = useAuth()
-  const { addToCart } = useCart()
-  const navigate = useNavigate()
-  const [adding, setAdding] = useState(false)
-  const [selectedVariantIdx, setSelectedVariantIdx] = useState(0)
-
-  const variant = product.variants?.[selectedVariantIdx]
-  const discount = variant ? Math.round(((variant.mrp - variant.price) / variant.mrp) * 100) : 0
+  const { user } = useAuth();
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
+  const [adding, setAdding] = useState(false);
+  const variant = product.variants?.length
+    ? product.variants.reduce((min, v) => (v.price < min.price ? v : min))
+    : null;
 
   const handleAddToCart = async (e) => {
-    e.preventDefault()
-    if (!user) { navigate('/login'); return }
-    if (!variant) return
-    try {
-      setAdding(true)
-      await addToCart(product._id, variant._id, 1)
-    } catch (err) {
-      toast.error(getErrorMessage(err))
-    } finally {
-      setAdding(false)
+    e.preventDefault();
+
+    if (!user) {
+      navigate("/login");
+      return;
     }
-  }
+
+    if (!variant) return;
+
+    try {
+      setAdding(true);
+      await addToCart(product._id, variant._id, 1);
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setAdding(false);
+    }
+  };
 
   return (
     <Link
@@ -37,7 +41,7 @@ const ProductCard = ({ product }) => {
       className="card group flex flex-col hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
     >
       {/* Image */}
-      <div className="relative overflow-hidden bg-earth-50 rounded-t-2xl aspect-square">
+      <div className="relative overflow-hidden bg-earth-50 rounded-t-xl aspect-square">
         {product.images?.[0] ? (
           <img
             src={product.images[0]}
@@ -51,16 +55,6 @@ const ProductCard = ({ product }) => {
           </div>
         )}
 
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {product.isFeatured && (
-            <span className="badge bg-brand-600 text-white">⭐ Featured</span>
-          )}
-          {discount > 0 && (
-            <span className="badge bg-spice-600 text-white">{discount}% OFF</span>
-          )}
-        </div>
-
         {/* Category */}
         <div className="absolute top-3 right-3">
           <span className="badge bg-white/90 text-earth-700 capitalize">
@@ -68,10 +62,12 @@ const ProductCard = ({ product }) => {
           </span>
         </div>
 
-        {/* Out of stock overlay */}
+        {/* Out of stock */}
         {variant && variant.stock === 0 && (
-          <div className="absolute inset-0 bg-earth-900/50 flex items-center justify-center rounded-t-2xl">
-            <span className="badge bg-white text-earth-800 text-sm">Out of Stock</span>
+          <div className="absolute inset-0 bg-earth-900/50 flex items-center justify-center rounded-t-xl">
+            <span className="badge bg-white text-earth-800 text-sm">
+              Out of Stock
+            </span>
           </div>
         )}
       </div>
@@ -85,39 +81,28 @@ const ProductCard = ({ product }) => {
 
           {product.ratings?.count > 0 && (
             <div className="mt-1.5">
-              <StarRating rating={product.ratings.average} count={product.ratings.count} size="sm" />
+              <StarRating
+                rating={product.ratings.average}
+                count={product.ratings.count}
+                size="sm"
+              />
             </div>
           )}
         </div>
 
-        {/* Variant selector */}
-        {product.variants?.length > 1 && (
-          <div className="flex flex-wrap gap-1.5" onClick={(e) => e.preventDefault()}>
-            {product.variants.map((v, idx) => (
-              <button
-                key={v._id}
-                onClick={(e) => { e.preventDefault(); setSelectedVariantIdx(idx) }}
-                className={`px-2 py-0.5 rounded-md font-body text-xs font-bold border transition-all duration-150 ${
-                  idx === selectedVariantIdx
-                    ? 'bg-brand-600 text-white border-brand-600'
-                    : 'bg-white text-earth-600 border-earth-200 hover:border-brand-400'
-                }`}
-              >
-                {v.size}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Price + CTA */}
+        {/* Price + Button */}
         <div className="flex items-center justify-between gap-2">
-          <div>
-            <span className="font-display font-bold text-earth-900 text-lg leading-none">
+          {/* ✅ PRICE SECTION */}
+          <div className="flex items-center gap-2">
+            {/* Selling Price (slightly bold & darker) */}
+            <span className="text-sm text-earth-900 font-semibold">
               {formatPrice(variant?.price ?? 0)}
             </span>
-            {discount > 0 && (
-              <span className="font-body text-xs text-earth-400 line-through ml-1.5">
-                {formatPrice(variant?.mrp ?? 0)}
+
+            {/* MRP (light + strike) */}
+            {variant?.mrp > variant?.price && (
+              <span className="text-sm text-earth-400 line-through">
+                {formatPrice(variant?.mrp)}
               </span>
             )}
           </div>
@@ -125,14 +110,14 @@ const ProductCard = ({ product }) => {
           <button
             onClick={handleAddToCart}
             disabled={adding || (variant && variant.stock === 0)}
-            className="shrink-0 btn-primary text-xs py-2 px-3 rounded-lg"
+            className="btn-primary text-xs py-2 px-3 rounded-md"
           >
-            {adding ? '…' : variant?.stock === 0 ? 'Sold Out' : '+ Cart'}
+            {adding ? "…" : variant?.stock === 0 ? "Sold Out" : "+ Cart"}
           </button>
         </div>
       </div>
     </Link>
-  )
-}
+  );
+};
 
-export default ProductCard
+export default ProductCard;

@@ -6,6 +6,14 @@ import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import { PageLoader } from "./components/common/Loader";
 
+// Footer and Navbar
+import ShippingPolicy from "./pages/ShippingPolicy";
+import ReturnPolicy from "./pages/ReturnPolicy";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
+import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
+
 // Admin components
 import AdminRoute from "./components/admin/AdminRoute";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -94,7 +102,55 @@ const App = () => (
           </MainLayout>
         }
       />
-
+      {/* Footer links */}
+      <Route
+        path="/shipping-policy"
+        element={
+          <MainLayout>
+            <ShippingPolicy />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/return-policy"
+        element={
+          <MainLayout>
+            <ReturnPolicy />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/privacy-policy"
+        element={
+          <MainLayout>
+            <PrivacyPolicy />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <MainLayout>
+            <Terms />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <MainLayout>
+            <Contact />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/faq"
+        element={
+          <MainLayout>
+            <FAQ />
+          </MainLayout>
+        }
+      />
       {/* ── Auth routes (no navbar/footer) ───────────────────────────── */}
       <Route
         path="/login"
@@ -112,7 +168,6 @@ const App = () => (
           </AuthLayout>
         }
       />
-
       {/* ── Protected user routes ─────────────────────────────────────── */}
       <Route
         path="/checkout"
@@ -154,7 +209,6 @@ const App = () => (
           </ProtectedRoute>
         }
       />
-
       {/* ── Admin routes (role === 'admin' required) ─────────────────── */}
       <Route
         path="/admin"

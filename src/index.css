@@ -26,50 +26,85 @@
 }
 
 @layer components {
+
+  /* 🔥 PRIMARY BUTTON */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-body font-bold rounded-lg transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-[#4A1F14] hover:bg-[#3A160F] 
+           text-white font-body font-bold 
+           rounded-md transition-all duration-200 
+           active:scale-95 
+           disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
 
+  /* 🔥 SECONDARY BUTTON */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 bg-earth-100 hover:bg-earth-200 text-earth-900 font-body font-bold rounded-lg transition-all duration-200 active:scale-95 border border-earth-200;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-[#5B2A1C] hover:bg-[#4A1F14] 
+           text-white font-body font-bold 
+           rounded-md transition-all duration-200 
+           active:scale-95 border border-[#6B3A2A];
   }
 
+  /* 🔥 GHOST BUTTON */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-earth-700 hover:text-brand-700 hover:bg-brand-50 font-body rounded-lg transition-all duration-200;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 
+           text-[#4A1F14] hover:text-white hover:bg-[#4A1F14] 
+           font-body rounded-md transition-all duration-200;
   }
 
+  /* 🔥 DANGER BUTTON */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 bg-spice-600 hover:bg-spice-700 text-white font-body font-bold rounded-lg transition-all duration-200 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 
+           bg-[#8B2E1E] hover:bg-[#6E2317] 
+           text-white font-body font-bold 
+           rounded-md transition-all duration-200 active:scale-95;
   }
 
+  /* INPUT */
   .input-field {
-    @apply w-full px-4 py-3 bg-white border border-earth-200 rounded-lg text-earth-900 placeholder-earth-400 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-200 font-body text-sm;
+    @apply w-full px-4 py-3 bg-white border border-[#E5D6C6] 
+           rounded-md text-[#301c18] placeholder-[#BFA58A] 
+           focus:outline-none focus:ring-2 focus:ring-[#4A1F14] 
+           focus:border-transparent transition-all duration-200 
+           font-body text-sm;
   }
 
+  /* SELECT */
   .select-field {
-    @apply w-full px-4 py-3 bg-white border border-earth-200 rounded-lg text-earth-900 focus:outline-none focus:ring-2 focus:ring-brand-400 focus:border-transparent transition-all duration-200 font-body text-sm appearance-none cursor-pointer;
+    @apply w-full px-4 py-3 bg-white border border-[#E5D6C6] 
+           rounded-md text-[#301c18] 
+           focus:outline-none focus:ring-2 focus:ring-[#4A1F14] 
+           focus:border-transparent transition-all duration-200 
+           font-body text-sm appearance-none cursor-pointer;
   }
 
+  /* CARD */
   .card {
-    @apply bg-white rounded-2xl border border-earth-100 shadow-sm overflow-hidden;
+    @apply bg-white rounded-xl border border-[#EFE3D6] shadow-sm overflow-hidden;
   }
 
+  /* BADGE */
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold font-body uppercase tracking-wide;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs 
+           font-bold font-body uppercase tracking-wide;
   }
 
+  /* TITLES */
   .section-title {
-    @apply font-display text-3xl md:text-4xl font-bold text-earth-900 leading-tight;
+    @apply font-display text-3xl md:text-4xl font-bold text-[#301c18] leading-tight;
   }
 
   .section-subtitle {
-    @apply font-body text-earth-600 text-lg mt-2;
+    @apply font-body text-[#6B4A3A] text-lg mt-2;
   }
 
+  /* CONTAINER */
   .page-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
+  /* SHIMMER */
   .shimmer {
     background: linear-gradient(90deg, #f2ebe0 25%, #faf7f2 50%, #f2ebe0 75%);
     background-size: 200% 100%;
@@ -78,10 +113,13 @@
 }
 
 @layer utilities {
+
+  /* TEXT GRADIENT */
   .text-gradient {
-    @apply bg-gradient-to-r from-brand-700 to-spice-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-[#4A1F14] to-[#8B2E1E] bg-clip-text text-transparent;
   }
 
+  /* BACKGROUND TEXTURE */
   .bg-texture {
     background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a3694a' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
   }
