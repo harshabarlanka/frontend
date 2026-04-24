@@ -49,26 +49,26 @@ const HomePage = () => {
       {/* ✅ HERO BANNER */}
       <section className="w-full">
         <img
-  src={heroBanner}
-  alt="Naidu Gari Ruchulu Banner"
-  className="
+          src={heroBanner}
+          alt="Naidu Gari Ruchulu Banner"
+          className="
     w-full 
     h-[260px] sm:h-[340px] md:h-[440px] 
     lg:h-[600px] xl:h-[670px]
     object-cover 
     object-[25%_center]
   "
-/>
+        />
       </section>
 
       {/* ✅ STATS */}
       <section className="bg-brand-600 py-6 sm:py-8">
         <div className="page-container grid grid-cols-2 sm:grid-cols-4 gap-6 text-center text-white">
           {[
-            { value: "35+", label: "Pickle Varieties" },
-            { value: "12K+", label: "Happy Customers" },
+            { value: "28+", label: "Authentic Homemade Flavors" },
+            { value: "700+", label: "Happy Customers" },
             { value: "100%", label: "Natural" },
-            { value: "3–5", label: "Day Delivery" },
+            { value: "4–6", label: "Day Delivery" },
           ].map((item) => (
             <div key={item.label}>
               <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold">
