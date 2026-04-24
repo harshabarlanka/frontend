@@ -56,7 +56,7 @@ const HomePage = () => {
     h-[260px] sm:h-[340px] md:h-[440px] 
     lg:h-[600px] xl:h-[670px]
     object-cover 
-    object-[40%_center]
+    object-[25%_center]
   "
 />
       </section>
