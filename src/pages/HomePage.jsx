@@ -4,7 +4,8 @@ import { getProductsAPI } from "../api/product.api";
 import ProductGrid from "../components/product/ProductGrid";
 import { CATEGORIES } from "../constants/constants_index";
 import heroBanner from "../assets/banner.jpeg";
-
+import { useRef } from "react";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 const TESTIMONIALS = [
   {
     name: "Priya S.",
@@ -30,6 +31,7 @@ const HomePage = () => {
   const navigate = useNavigate();
   const [featured, setFeatured] = useState([]);
   const [loading, setLoading] = useState(true);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
@@ -60,7 +62,6 @@ const HomePage = () => {
   "
         />
       </section>
-
       {/* ✅ STATS */}
       <section className="bg-brand-600 py-6 sm:py-8">
         <div className="page-container grid grid-cols-2 sm:grid-cols-4 gap-6 text-center text-white">
@@ -79,7 +80,6 @@ const HomePage = () => {
           ))}
         </div>
       </section>
-
       {/* ✅ CATEGORIES */}
       <section className="py-12 sm:py-16 lg:py-20 bg-earth-50">
         <div className="page-container">
@@ -93,69 +93,86 @@ const HomePage = () => {
             </p>
           </div>
 
-          {/* Grid */}
-          <div
-            className="
-            grid 
-            grid-cols-2 
-            sm:grid-cols-3 
-            md:grid-cols-4 
-            lg:grid-cols-5 
-            gap-3 sm:gap-4
-          "
-          >
-            {CATEGORIES.map((cat) => (
-              <Link
-                key={cat.value}
-                to={`/products?category=${cat.value}`}
-                className="
-      group
-      flex flex-col items-center
-      gap-2
-    "
-              >
-                {/* IMAGE CARD */}
-                <div
-                  className="
-    w-full
-    aspect-square
-    overflow-hidden
-    rounded-md sm:rounded-lg
-    shadow-sm group-hover:shadow-lg
-    transition-all duration-300
-  "
-                >
-                  <img
-                    src={cat.image}
-                    alt={cat.label}
-                    className="
-      w-full h-full
-      object-cover
-      group-hover:scale-110
-      transition-transform duration-500
-    "
-                  />
-                </div>
+          {/* WRAPPER */}
+          <div className="relative">
+            {/* LEFT FADE */}
+            <div className="absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-earth-50 to-transparent z-10 pointer-events-none" />
 
-                {/* LABEL BELOW */}
-                <span
-                  className="
-    text-sm sm:text-base md:text-lg
-    font-semibold
-    text-center
-    text-earth-800
-    group-hover:text-brand-600
-    transition
+            {/* RIGHT FADE */}
+            <div className="absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-earth-50 to-transparent z-10 pointer-events-none" />
+
+            {/* LEFT ARROW */}
+            <button
+              onClick={() =>
+                scrollRef.current.scrollBy({ left: -300, behavior: "smooth" })
+              }
+              className="
+    absolute left-3 top-1/2 -translate-y-1/2 z-20
+    w-12 h-12 flex items-center justify-center
+    bg-white/90 backdrop-blur
+    rounded-full shadow-lg
+    hover:scale-110 hover:bg-white
+    transition-all duration-200
   "
+            >
+              <FiChevronLeft size={22} />
+            </button>
+
+            {/* RIGHT ARROW */}
+            <button
+              onClick={() =>
+                scrollRef.current.scrollBy({ left: 300, behavior: "smooth" })
+              }
+              className="
+    absolute right-3 top-1/2 -translate-y-1/2 z-20
+    w-12 h-12 flex items-center justify-center
+    bg-white/90 backdrop-blur
+    rounded-full shadow-lg
+    hover:scale-110 hover:bg-white
+    transition-all duration-200
+  "
+            >
+              <FiChevronRight size={22} />
+            </button>
+
+            {/* SCROLL ROW */}
+            <div
+              ref={scrollRef}
+              className="
+          flex gap-4 overflow-x-auto no-scrollbar py-4
+        "
+            >
+              {CATEGORIES.map((cat) => (
+                <Link
+                  key={cat.value}
+                  to={`/products?category=${cat.value}`}
+                  className="group flex flex-col items-center gap-2"
                 >
-                  {cat.label}
-                </span>
-              </Link>
-            ))}
+                  <div
+                    className="
+                min-w-[160px] sm:min-w-[180px]
+                aspect-square
+                overflow-hidden
+                rounded-lg
+                shadow-sm group-hover:shadow-lg
+              "
+                  >
+                    <img
+                      src={cat.image}
+                      alt={cat.label}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  <span className="text-sm font-semibold text-center">
+                    {cat.label}
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
-
       {/* ✅ FEATURED PRODUCTS */}
       <section className="py-12 sm:py-16 lg:py-20">
         <div className="page-container">
@@ -180,7 +197,6 @@ const HomePage = () => {
           <ProductGrid products={featured} loading={loading} />
         </div>
       </section>
-
       {/* ✅ TESTIMONIALS */}
       <section className="py-12 sm:py-16 lg:py-20 bg-brand-50">
         <div className="page-container">
