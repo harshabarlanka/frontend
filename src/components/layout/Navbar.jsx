@@ -15,11 +15,33 @@ const Navbar = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const currentCategory = params.get("category");
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+
+useEffect(() => {
+  let ticking = false;
+
+  const handleScroll = () => {
+    const shouldScroll = window.scrollY > 20;
+
+    setScrolled((prev) => {
+      if (prev === shouldScroll) return prev; // prevent unnecessary updates
+      return shouldScroll;
+    });
+  };
+
+  const onScroll = () => {
+    if (!ticking) {
+      window.requestAnimationFrame(() => {
+        handleScroll();
+        ticking = false;
+      });
+      ticking = true;
+    }
+  };
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+
+  return () => window.removeEventListener("scroll", onScroll);
+}, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -51,11 +73,7 @@ const Navbar = () => {
       }`}
     >
       <div className="page-container">
-        <div
-          className={`flex items-center justify-between transition-all duration-300 ${
-            scrolled ? "h-16 sm:h-18" : "h-20 sm:h-24"
-          }`}
-        >
+        <div className="flex items-center justify-between h-20 sm:h-24">
           {/* ✅ LOGO */}
           <Link to="/" className="flex items-center shrink-0">
             <img
