@@ -15,7 +15,8 @@ const ProductsPage = () => {
 
   // ✅ Simplified filters (no sidebar filters)
   const filters = {
-    category: searchParams.get("category") || "veg-pickles",
+    category: searchParams.get("category"),
+    featured: searchParams.get("featured"),
     sort: searchParams.get("sort") || "-createdAt",
     page: Number(searchParams.get("page") || 1),
   };
@@ -42,8 +43,15 @@ const ProductsPage = () => {
         page: filters.page,
         limit: 12,
         sort: filters.sort,
-        ...(filters.category && { category: filters.category }),
       };
+
+      if (filters.category) {
+        params.category = filters.category;
+      }
+
+      if (filters.featured) {
+        params.featured = filters.featured;
+      }
 
       const { data } = await getProductsAPI(params);
 

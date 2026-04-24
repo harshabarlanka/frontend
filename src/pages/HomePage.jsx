@@ -52,12 +52,12 @@ const HomePage = () => {
           src={heroBanner}
           alt="Naidu Gari Ruchulu Banner"
           className="
-            w-full 
-            h-[260px] sm:h-[340px] md:h-[440px] 
-            lg:h-[600px] xl:h-[670px]
-            object-cover 
-            object-top
-          "
+    w-full 
+    h-[260px] sm:h-[340px] md:h-[440px] 
+    lg:h-[600px] xl:h-[670px]
+    object-cover 
+    object-center
+  "
         />
       </section>
 
@@ -139,7 +139,7 @@ const HomePage = () => {
 
                 {/* LABEL BELOW */}
                 <span
-  className="
+                  className="
     text-sm sm:text-base md:text-lg
     font-semibold
     text-center
@@ -147,9 +147,9 @@ const HomePage = () => {
     group-hover:text-brand-600
     transition
   "
->
-  {cat.label}
-</span>
+                >
+                  {cat.label}
+                </span>
               </Link>
             ))}
           </div>
