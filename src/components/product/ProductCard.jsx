@@ -36,8 +36,7 @@ const ProductCard = ({ product }) => {
   };
 
   return (
-    <Link
-      to={`/products/${product.slug}`}
+    <Link to={`/product/${product.slug}`}
       className="card group flex flex-col hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
     >
       {/* Image */}
