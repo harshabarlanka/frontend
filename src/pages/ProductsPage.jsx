@@ -1,26 +1,29 @@
 import { useState, useEffect, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import { getProductsAPI } from "../api/product.api";
 import ProductGrid from "../components/product/ProductGrid";
 import Pagination from "../components/common/Pagination";
 import { CATEGORIES } from "../constants/constants_index";
 
 const ProductsPage = () => {
+  const { category } = useParams(); // ✅ SEO URL param
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
   const [meta, setMeta] = useState({ total: 0, pages: 1, page: 1 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // ✅ Simplified filters (no sidebar filters)
+  // ✅ Filters (clean)
   const filters = {
-    category: searchParams.get("category"),
+    category: category || null,
     featured: searchParams.get("featured"),
     sort: searchParams.get("sort") || "-createdAt",
     page: Number(searchParams.get("page") || 1),
   };
 
+  // ✅ Update query params (only for sort & pagination)
   const updateFilter = (key, value) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev);
@@ -34,6 +37,7 @@ const ProductsPage = () => {
     });
   };
 
+  // ✅ Fetch products
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -62,11 +66,15 @@ const ProductsPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchParams]);
+  }, [category, searchParams]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // ✅ Dynamic category label
+  const categoryLabel =
+    CATEGORIES.find((c) => c.value === category)?.label || "All Products";
 
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">
@@ -74,11 +82,7 @@ const ProductsPage = () => {
         {/* ✅ Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="section-title">
-              {filters.category
-                ? CATEGORIES.find((c) => c.value === filters.category)?.label
-                : "All Products"}
-            </h1>
+            <h1 className="section-title">{categoryLabel}</h1>
 
             {!loading && (
               <p className="font-body text-earth-500 text-sm mt-1">
@@ -87,7 +91,7 @@ const ProductsPage = () => {
             )}
           </div>
 
-          {/* ✅ Sort Only */}
+          {/* ✅ Sort */}
           <div>
             <select
               value={filters.sort}

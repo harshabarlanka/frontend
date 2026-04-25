@@ -6,7 +6,7 @@ import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import { PageLoader } from "./components/common/Loader";
 
-// Footer and Navbar
+// Footer pages
 import ShippingPolicy from "./pages/ShippingPolicy";
 import ReturnPolicy from "./pages/ReturnPolicy";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -14,17 +14,18 @@ import Terms from "./pages/Terms";
 import Contact from "./pages/Contact";
 import FAQ from "./pages/FAQ";
 
-// Admin components
+// Admin
 import AdminRoute from "./components/admin/AdminRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import ResetPassword from "./pages/ResetPassword";
-// Eagerly loaded critical paths
+import CategoryRedirect from "./pages/CategoryRedirect";
+// Core pages
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ForgotPassword from "./pages/ForgotPassword";
 
-// Lazily loaded user pages
+// Lazy pages
 const ProductsPage = lazy(() => import("./pages/ProductsPage"));
 const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
 const CartPage = lazy(() => import("./pages/CartPage"));
@@ -33,7 +34,7 @@ const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 
-// Lazily loaded admin pages
+// Admin lazy
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
 const AdminOrderDetail = lazy(
@@ -41,10 +42,9 @@ const AdminOrderDetail = lazy(
 );
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
-const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons")); // Feature 2
+const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 
-// ── Layout wrappers ──────────────────────────────────────────────────────────
-
+// Layouts
 const MainLayout = ({ children }) => (
   <div className="flex flex-col min-h-screen">
     <Navbar />
@@ -63,13 +63,12 @@ const AdminPage = ({ children }) => (
   </AdminRoute>
 );
 
-// ── App ───────────────────────────────────────────────────────────────────────
-
 const App = () => (
   <Suspense fallback={<PageLoader />}>
     <ScrollManager />
     <Routes>
-      {/* ── Public storefront routes ──────────────────────────────────── */}
+      {/* ───────── PUBLIC ROUTES ───────── */}
+
       <Route
         path="/"
         element={
@@ -78,22 +77,43 @@ const App = () => (
           </MainLayout>
         }
       />
+
+      {/* ✅ PRODUCTS */}
+
+      {/* All products */}
+
+      <Route path="/products" element={<CategoryRedirect />} />
+
       <Route
-        path="/products"
+        path="/products/:category"
         element={
           <MainLayout>
             <ProductsPage />
           </MainLayout>
         }
       />
+
+      {/* Category (SEO) */}
       <Route
-        path="/products/:slug"
+        path="/products/:category"
+        element={
+          <MainLayout>
+            <ProductsPage />
+          </MainLayout>
+        }
+      />
+
+      {/* Product detail (NO CONFLICT) */}
+      <Route
+        path="/product/:slug"
         element={
           <MainLayout>
             <ProductDetailPage />
           </MainLayout>
         }
       />
+
+      {/* Cart */}
       <Route
         path="/cart"
         element={
@@ -102,7 +122,8 @@ const App = () => (
           </MainLayout>
         }
       />
-      {/* Footer links */}
+
+      {/* Footer */}
       <Route
         path="/shipping-policy"
         element={
@@ -151,7 +172,9 @@ const App = () => (
           </MainLayout>
         }
       />
-      {/* ── Auth routes (no navbar/footer) ───────────────────────────── */}
+
+      {/* ───────── AUTH ───────── */}
+
       <Route
         path="/login"
         element={
@@ -168,7 +191,25 @@ const App = () => (
           </AuthLayout>
         }
       />
-      {/* ── Protected user routes ─────────────────────────────────────── */}
+      <Route
+        path="/forgot-password"
+        element={
+          <AuthLayout>
+            <ForgotPassword />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <AuthLayout>
+            <ResetPassword />
+          </AuthLayout>
+        }
+      />
+
+      {/* ───────── USER ───────── */}
+
       <Route
         path="/checkout"
         element={
@@ -209,7 +250,9 @@ const App = () => (
           </ProtectedRoute>
         }
       />
-      {/* ── Admin routes (role === 'admin' required) ─────────────────── */}
+
+      {/* ───────── ADMIN ───────── */}
+
       <Route
         path="/admin"
         element={
@@ -258,7 +301,6 @@ const App = () => (
           </AdminPage>
         }
       />
-      {/* Feature 2: Coupon management */}
       <Route
         path="/admin/coupons"
         element={
@@ -267,23 +309,8 @@ const App = () => (
           </AdminPage>
         }
       />
-      <Route
-        path="/forgot-password"
-        element={
-          <AuthLayout>
-            <ForgotPassword />
-          </AuthLayout>
-        }
-      />
-      <Route
-        path="/reset-password"
-        element={
-          <AuthLayout>
-            <ResetPassword />
-          </AuthLayout>
-        }
-      />
-      {/* ── 404 ──────────────────────────────────────────────────────── */}
+
+      {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   </Suspense>
