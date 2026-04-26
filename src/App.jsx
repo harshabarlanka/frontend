@@ -84,15 +84,6 @@ const App = () => (
 
       <Route path="/products" element={<CategoryRedirect />} />
 
-      <Route
-        path="/products/:category"
-        element={
-          <MainLayout>
-            <ProductsPage />
-          </MainLayout>
-        }
-      />
-
       {/* Category (SEO) */}
       <Route
         path="/products/:category"

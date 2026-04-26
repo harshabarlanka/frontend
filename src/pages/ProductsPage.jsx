@@ -17,7 +17,7 @@ const ProductsPage = () => {
 
   // ✅ Filters (clean)
   const filters = {
-    category: category || null,
+    category: category && category !== "all" ? category : null,
     featured: searchParams.get("featured"),
     sort: searchParams.get("sort") || "-createdAt",
     page: Number(searchParams.get("page") || 1),
@@ -73,8 +73,13 @@ const ProductsPage = () => {
   }, [fetchProducts]);
 
   // ✅ Dynamic category label
-  const categoryLabel =
-    CATEGORIES.find((c) => c.value === category)?.label || "All Products";
+  const categoryLabel = (() => {
+    if (!category || category === "all") {
+      if (filters.featured === "true") return "Best Sellers";
+      return "All Products";
+    }
+    return CATEGORIES.find((c) => c.value === category)?.label || "All Products";
+  })();
 
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">

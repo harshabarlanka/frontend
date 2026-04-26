@@ -12,7 +12,7 @@ const CategoryRedirect = () => {
     if (category) {
       navigate(`/products/${category}`, { replace: true });
     } else {
-      navigate("/products", { replace: true });
+      navigate("/products/all", { replace: true });
     }
   }, [location, navigate]);
 
