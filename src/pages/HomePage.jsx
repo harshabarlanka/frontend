@@ -15,6 +15,7 @@ import { getProductsAPI } from "../api/product.api";
 import { CATEGORIES } from "../constants/constants_index";
 import heroBanner from "../assets/banner.jpeg";
 import ProductCard from "../components/product/ProductCard";
+import logo from "../assets/banner_logo.jpeg";
 
 const TESTIMONIALS = [
   {
@@ -327,7 +328,7 @@ const HomePage = () => {
           <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
             <div className="overflow-hidden rounded-[32px] shadow-[0_24px_70px_rgba(15,23,42,0.12)]">
               <img
-                src={heroBanner}
+                src={logo}
                 alt="Authentic homemade food"
                 className="
     w-full 
