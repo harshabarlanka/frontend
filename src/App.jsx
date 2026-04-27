@@ -45,10 +45,12 @@ const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 
 // Layouts
-const MainLayout = ({ children }) => (
+// noPad={true} → full-bleed pages (HomePage hero flush to navbar)
+// noPad={false} → all other pages get consistent py-8 breathing room
+const MainLayout = ({ children, noPad = false }) => (
   <div className="flex flex-col min-h-screen">
     <Navbar />
-    <main className="flex-1">{children}</main>
+    <main className={`flex-1 ${noPad ? "" : "py-8"}`}>{children}</main>
     <Footer />
   </div>
 );
@@ -72,7 +74,7 @@ const App = () => (
       <Route
         path="/"
         element={
-          <MainLayout>
+          <MainLayout noPad>
             <HomePage />
           </MainLayout>
         }

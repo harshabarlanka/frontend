@@ -46,7 +46,7 @@ const ProductDetailPage = () => {
   if (loading) return <PageLoader />;
   if (error || !product)
     return (
-      <div className="min-h-screen flex items-center justify-center pt-16">
+      <div className="min-h-screen flex items-center justify-center">
         <ErrorState message={error} onRetry={() => window.location.reload()} />
       </div>
     );
@@ -120,8 +120,8 @@ const ProductDetailPage = () => {
   const images = product.images?.length > 0 ? product.images : [null];
 
   return (
-    <div className="min-h-screen bg-earth-50 pt-20 animate-fade-in">
-      <div className="page-container py-8">
+    <div className="min-h-screen bg-earth-50 animate-fade-in">
+      <div className="page-container">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs font-body text-earth-400 mb-8">
           <Link to="/" className="hover:text-brand-600 transition-colors">

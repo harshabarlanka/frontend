@@ -69,7 +69,7 @@ const OrderDetailPage = () => {
 
   if (loading) return <PageLoader />
   if (error) return (
-    <div className="min-h-screen pt-24 bg-earth-50 flex items-center justify-center">
+    <div className="min-h-screen bg-earth-50 flex items-center justify-center">
       <ErrorState message={error} onRetry={fetchOrder} />
     </div>
   )
@@ -80,8 +80,8 @@ const OrderDetailPage = () => {
   const isCancellable = ['pending', 'confirmed', 'packed'].includes(order.status)
 
   return (
-    <div className="min-h-screen bg-earth-50 pt-20 animate-fade-in">
-      <div className="page-container py-8">
+    <div className="min-h-screen bg-earth-50 animate-fade-in">
+      <div className="page-container">
         {/* Back + header */}
         <div className="mb-6">
           <button onClick={() => navigate('/orders')} className="btn-ghost text-sm mb-4 pl-0">

@@ -20,7 +20,7 @@ const CartPage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center bg-earth-50">
+      <div className="min-h-screen flex items-center justify-center bg-earth-50">
         <EmptyState
           emoji="🔒"
           title="Please log in"
@@ -32,13 +32,13 @@ const CartPage = () => {
   }
 
   if (cartLoading) return (
-    <div className="min-h-screen pt-24 bg-earth-50 flex items-center justify-center">
+    <div className="min-h-screen bg-earth-50 flex items-center justify-center">
       <InlineLoader text="Loading your cart…" />
     </div>
   )
 
   if (items.length === 0) return (
-    <div className="min-h-screen pt-24 bg-earth-50 flex items-center justify-center">
+    <div className="min-h-screen bg-earth-50 flex items-center justify-center">
       <EmptyState
         emoji="🛒"
         title="Your cart is empty"
@@ -49,8 +49,8 @@ const CartPage = () => {
   )
 
   return (
-    <div className="min-h-screen bg-earth-50 pt-20 animate-fade-in">
-      <div className="page-container py-8">
+    <div className="min-h-screen bg-earth-50 animate-fade-in">
+      <div className="page-container">
         <div className="flex items-center justify-between mb-8">
           <h1 className="section-title">Your Cart <span className="text-earth-400 text-2xl font-body font-normal">({items.length} item{items.length !== 1 ? 's' : ''})</span></h1>
           <button

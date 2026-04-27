@@ -38,8 +38,8 @@ const OrdersPage = () => {
   useEffect(() => { fetchOrders(1, statusFilter) }, [statusFilter])
 
   return (
-    <div className="min-h-screen bg-earth-50 pt-20 animate-fade-in">
-      <div className="page-container py-8">
+    <div className="min-h-screen bg-earth-50 animate-fade-in">
+      <div className="page-container">
         <div className="mb-8">
           <h1 className="section-title">My Orders</h1>
           <p className="section-subtitle">Track and manage all your pickle orders</p>

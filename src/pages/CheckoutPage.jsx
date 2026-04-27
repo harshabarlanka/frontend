@@ -230,7 +230,7 @@ const CheckoutPage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center bg-earth-50">
+      <div className="min-h-screen flex items-center justify-center bg-earth-50">
         <EmptyState
           emoji="🔒"
           title="Please log in"
@@ -247,7 +247,7 @@ const CheckoutPage = () => {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center bg-earth-50">
+      <div className="min-h-screen flex items-center justify-center bg-earth-50">
         <EmptyState
           emoji="🛒"
           title="Nothing to checkout"
@@ -263,8 +263,8 @@ const CheckoutPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-earth-50 pt-20 animate-fade-in">
-      <div className="page-container py-8">
+    <div className="min-h-screen bg-earth-50 animate-fade-in">
+      <div className="page-container">
         <h1 className="section-title mb-8">Checkout</h1>
 
         {/* Step indicator */}

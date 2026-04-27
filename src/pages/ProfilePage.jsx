@@ -15,8 +15,8 @@ const ProfilePage = () => {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-earth-50 pt-20 animate-fade-in">
-      <div className="page-container py-8">
+    <div className="min-h-screen bg-earth-50 animate-fade-in">
+      <div className="page-container">
         {/* Header */}
         <div className="flex items-center gap-5 mb-8">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand-400 to-earth-600 flex items-center justify-center text-3xl text-white font-display font-bold shadow-md">
