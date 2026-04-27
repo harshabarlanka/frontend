@@ -16,24 +16,24 @@ import { CATEGORIES } from "../constants/constants_index";
 import heroBanner from "../assets/banner.jpeg";
 import ProductCard from "../components/product/ProductCard";
 import logo from "../assets/banner_logo.jpeg";
-
+import { FiInstagram } from "react-icons/fi";
 const TESTIMONIALS = [
   {
-    name: "Priya S.",
-    city: "Bengaluru",
-    text: "The veg pickles are just like my dadi used to make. Absolutely authentic!",
+    name: "Suresh K.",
+    city: "Guntur",
+    text: "The veg pickles are just like my Grandmother used to make. Absolutely authentic!",
     stars: 5,
   },
   {
-    name: "Rahul M.",
-    city: "Mumbai",
-    text: "Best non-veg pickle I've ever tasted. My wife ordered three jars already!",
-    stars: 5,
+    name: "Ramu C.",
+    city: "Visakhapatnam",
+    text: "Best non-veg pickle I've ever tasted. My wife ordered three packs already!",
+    stars: 4.5,
   },
   {
-    name: "Ananya K.",
-    city: "Chennai",
-    text: "Fast delivery and perfectly sealed jars. The sweets and snacks are divine.",
+    name: "Srinivas Rao.",
+    city: "Hyderabad",
+    text: "Fast delivery and perfectly sealed packs. The sweets and snacks are divine.",
     stars: 5,
   },
 ];
@@ -357,13 +357,15 @@ const HomePage = () => {
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  to="/products/all"
-                  className="inline-flex items-center justify-center gap-2 rounded-full bg-earth-950 px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-earth-900"
+                <a
+                  href="https://instagram.com/naidugariruchulu_official"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-[#b4532a] px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#9f4724]"
                 >
-                  Discover the Range
-                  <FiArrowRight />
-                </Link>
+                  <FiInstagram />
+                  Follow on Instagram
+                </a>
 
                 <Link
                   to="/products/all?featured=true"

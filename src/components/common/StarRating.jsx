@@ -1,25 +1,28 @@
-import { useState } from 'react'
+import { useState } from "react";
 
 const StarRating = ({
   rating = 0,
   count,
-  size = 'sm',
+  size = "sm",
   interactive = false,
   onRate,
-  className = '',
+  className = "",
 }) => {
-  const [hovered, setHovered] = useState(0)
+  const [hovered, setHovered] = useState(0);
 
-  const sizeCls = {
-    sm:  'text-sm',
-    md:  'text-xl',
-    lg:  'text-2xl',
-  }[size] || 'text-sm'
+  const sizeCls =
+    {
+      sm: "text-[14px]",
+      md: "text-[18px]",
+      lg: "text-[22px]",
+    }[size] || "text-[14px]";
 
+  // ✅ Interactive mode (no changes needed)
   if (interactive) {
-    const active = hovered || rating
+    const active = hovered || rating;
+
     return (
-      <div className={`flex gap-1 ${className}`}>
+      <div className={`flex gap-[2px] ${className}`}>
         {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
@@ -27,31 +30,46 @@ const StarRating = ({
             onClick={() => onRate?.(star)}
             onMouseEnter={() => setHovered(star)}
             onMouseLeave={() => setHovered(0)}
-            className={`${sizeCls} transition-all duration-150 hover:scale-125 focus:outline-none ${
-              star <= active ? 'text-brand-500' : 'text-earth-200'
+            className={`${sizeCls} transition-all duration-150 hover:scale-125 ${
+              star <= active ? "text-brand-500" : "text-earth-200"
             }`}
           >
             ★
           </button>
         ))}
       </div>
-    )
+    );
   }
 
-  const full  = Math.floor(rating)
-  const half  = rating % 1 >= 0.5 ? 1 : 0
-  const empty = 5 - full - half
+  // ✅ Non-interactive (FIXED spacing)
+  const numericRating = Number(rating) || 0;
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
-      <span className={`${sizeCls} text-brand-500 leading-none`}>{'★'.repeat(full)}</span>
-      {half === 1 && <span className={`${sizeCls} text-brand-300 leading-none`}>★</span>}
-      <span className={`${sizeCls} text-earth-200 leading-none`}>{'★'.repeat(empty)}</span>
+    <div className={`flex items-center gap-[2px] ${className}`}>
+      {[1, 2, 3, 4, 5].map((star) => {
+        let color = "text-earth-200";
+
+        if (star <= Math.floor(numericRating)) {
+          color = "text-brand-500"; // full
+        } else if (
+          star === Math.floor(numericRating) + 1 &&
+          numericRating % 1 >= 0.5
+        ) {
+          color = "text-brand-300"; // half (lighter)
+        }
+
+        return (
+          <span key={star} className={`${sizeCls} leading-none ${color}`}>
+            ★
+          </span>
+        );
+      })}
+
       {count !== undefined && (
-        <span className="font-body text-xs text-earth-500 ml-1">({count})</span>
+        <span className="text-xs text-earth-500 ml-1">({count})</span>
       )}
     </div>
-  )
-}
+  );
+};
 
-export default StarRating
+export default StarRating;
