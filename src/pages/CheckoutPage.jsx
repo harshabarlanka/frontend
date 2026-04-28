@@ -51,33 +51,32 @@ const CheckoutPage = () => {
   const items = cart?.items ?? [];
   const subtotal = cartTotal;
   const discountAmount = appliedCoupon?.discountAmount || 0;
-  const tax = Math.round(subtotal * 0.12);
 
   // Shipping: use resolved cost from API; fall back to simple rule while loading
   const resolvedShipping =
-    shippingCost !== null ? shippingCost : subtotal >= 500 ? 0 : 60;
-  const total = Math.max(
-    1,
-    subtotal + resolvedShipping + tax - discountAmount
-  );
+    shippingCost !== null ? shippingCost : subtotal >= 999 ? 0 : 60;
+  const total = Math.max(1, subtotal + resolvedShipping - discountAmount);
 
   // Fetch shipping cost when pincode is complete (6 digits)
-  const fetchShippingCost = useCallback(async (pincode) => {
-    if (!/^\d{6}$/.test(pincode)) return;
+  const fetchShippingCost = useCallback(
+    async (pincode) => {
+      if (!/^\d{6}$/.test(pincode)) return;
 
-    setShippingLoading(true);
-    try {
-      // placeOrder returns shippingCost in its response body,
-      // but to show it before placing we call a lightweight serviceability check.
-      // We piggyback on the order.api validate endpoint if it exists,
-      // or show the cart-based fallback while we wait for the actual order placement.
-      // For now we use the fallback and update post-placement.
-      // The backend will always use the authoritative Shiprocket rate on order creation.
-      setShippingCost(subtotal >= 500 ? 0 : 60);
-    } finally {
-      setShippingLoading(false);
-    }
-  }, [subtotal]);
+      setShippingLoading(true);
+      try {
+        // placeOrder returns shippingCost in its response body,
+        // but to show it before placing we call a lightweight serviceability check.
+        // We piggyback on the order.api validate endpoint if it exists,
+        // or show the cart-based fallback while we wait for the actual order placement.
+        // For now we use the fallback and update post-placement.
+        // The backend will always use the authoritative Shiprocket rate on order creation.
+        setShippingCost(subtotal >= 999 ? 0 : 60);
+      } finally {
+        setShippingLoading(false);
+      }
+    },
+    [subtotal],
+  );
 
   useEffect(() => {
     if (address.pincode?.length === 6) {
@@ -100,7 +99,9 @@ const CheckoutPage = () => {
 
       setAppliedCoupon({ code: coupon.code, discountAmount: da });
       setCouponInput("");
-      toast.success(`Coupon "${coupon.code}" applied! You save ${formatPrice(da)}`);
+      toast.success(
+        `Coupon "${coupon.code}" applied! You save ${formatPrice(da)}`,
+      );
     } catch (err) {
       const msg = getErrorMessage(err);
       setCouponError(msg);
@@ -276,8 +277,8 @@ const CheckoutPage = () => {
                   i < step
                     ? "bg-leaf-500 text-white"
                     : i === step
-                    ? "bg-brand-600 text-white"
-                    : "bg-earth-200 text-earth-500"
+                      ? "bg-brand-600 text-white"
+                      : "bg-earth-200 text-earth-500"
                 }`}
               >
                 {i < step ? "✓" : i + 1}
@@ -570,7 +571,9 @@ const CheckoutPage = () => {
                           setCouponInput(e.target.value.toUpperCase());
                           setCouponError("");
                         }}
-                        onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && handleApplyCoupon()
+                        }
                         className="input-field flex-1"
                         placeholder="Enter coupon code"
                         maxLength={20}
@@ -580,11 +583,7 @@ const CheckoutPage = () => {
                         disabled={couponLoading || !couponInput.trim()}
                         className="btn-secondary px-4 whitespace-nowrap disabled:opacity-50"
                       >
-                        {couponLoading ? (
-                          <Loader size="sm" />
-                        ) : (
-                          "Apply"
-                        )}
+                        {couponLoading ? <Loader size="sm" /> : "Apply"}
                       </button>
                     </div>
                   )}
@@ -654,7 +653,8 @@ const CheckoutPage = () => {
                       </p>
                       {appliedCoupon && (
                         <p className="font-body text-sm text-leaf-700 mt-1">
-                          🎟️ Coupon: {appliedCoupon.code} (−{formatPrice(appliedCoupon.discountAmount)})
+                          🎟️ Coupon: {appliedCoupon.code} (−
+                          {formatPrice(appliedCoupon.discountAmount)})
                         </p>
                       )}
                     </div>
@@ -741,25 +741,22 @@ const CheckoutPage = () => {
                   <span>
                     Shipping
                     {shippingLoading && (
-                      <span className="ml-1 text-earth-400 text-xs">(checking…)</span>
+                      <span className="ml-1 text-earth-400 text-xs">
+                        (checking…)
+                      </span>
                     )}
                   </span>
                   <span
-                    className={resolvedShipping === 0 ? "text-leaf-700 font-bold" : ""}
+                    className={
+                      resolvedShipping === 0 ? "text-leaf-700 font-bold" : ""
+                    }
                   >
-                    {shippingLoading ? (
-                      "—"
-                    ) : resolvedShipping === 0 ? (
-                      "FREE"
-                    ) : (
-                      formatPrice(resolvedShipping)
-                    )}
+                    {shippingLoading
+                      ? "—"
+                      : resolvedShipping === 0
+                        ? "FREE"
+                        : formatPrice(resolvedShipping)}
                   </span>
-                </div>
-
-                <div className="flex justify-between text-earth-700">
-                  <span>GST (12%)</span>
-                  <span>{formatPrice(tax)}</span>
                 </div>
 
                 {discountAmount > 0 && (
@@ -769,16 +766,27 @@ const CheckoutPage = () => {
                   </div>
                 )}
 
-                <div className="pt-3 border-t border-earth-100 flex justify-between font-display font-bold text-earth-900 text-lg">
-                  <span>Total</span>
-                  <span>{formatPrice(total)}</span>
+                <div className="pt-3 border-t border-earth-100">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-medium text-earth-600">
+                      Total
+                    </span>
+                    <span className="text-base font-semibold text-earth-800">
+                      ₹{total}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-earth-400 mt-1">
+                    Inclusive of all taxes • No hidden charges
+                  </p>
                 </div>
               </div>
 
               {appliedCoupon && (
                 <div className="mt-4 p-2 rounded-lg bg-leaf-50 border border-leaf-200">
                   <p className="font-body text-xs text-leaf-700 font-bold">
-                    🎟️ {appliedCoupon.code} — saving {formatPrice(discountAmount)}
+                    🎟️ {appliedCoupon.code} — saving{" "}
+                    {formatPrice(discountAmount)}
                   </p>
                 </div>
               )}

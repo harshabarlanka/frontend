@@ -1,32 +1,32 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
-import { useCart } from '../../context/CartContext'
-import { formatPrice, getErrorMessage } from '../../utils'
-import toast from 'react-hot-toast'
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
+import { formatPrice, getErrorMessage } from "../../utils";
+import toast from "react-hot-toast";
 
 const CartItem = ({ item }) => {
-  const { updateQuantity, removeItem } = useCart()
-  const [updating, setUpdating] = useState(false)
+  const { updateQuantity, removeItem } = useCart();
+  const [updating, setUpdating] = useState(false);
 
   const handleQtyChange = async (newQty) => {
-    if (newQty < 1 || newQty > 20) return
+    if (newQty < 1 || newQty > 20) return;
     try {
-      setUpdating(true)
-      await updateQuantity(item._id, newQty)
+      setUpdating(true);
+      await updateQuantity(item._id, newQty);
     } catch (err) {
-      toast.error(getErrorMessage(err))
+      toast.error(getErrorMessage(err));
     } finally {
-      setUpdating(false)
+      setUpdating(false);
     }
-  }
+  };
 
   const handleRemove = async () => {
     try {
-      await removeItem(item._id)
+      await removeItem(item._id);
     } catch (err) {
-      toast.error(getErrorMessage(err))
+      toast.error(getErrorMessage(err));
     }
-  }
+  };
 
   return (
     <div className="flex gap-4 py-5 border-b border-earth-100 last:border-0 animate-fade-in">
@@ -34,9 +34,15 @@ const CartItem = ({ item }) => {
       <Link to={`/products/${item.productId}`} className="shrink-0">
         <div className="w-20 h-20 rounded-xl overflow-hidden bg-earth-50 border border-earth-100">
           {item.image ? (
-            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+            <img
+              src={item.image}
+              alt={item.name}
+              className="w-full h-full object-cover"
+            />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-3xl">🫙</div>
+            <div className="w-full h-full flex items-center justify-center text-3xl">
+              🫙
+            </div>
           )}
         </div>
       </Link>
@@ -50,15 +56,27 @@ const CartItem = ({ item }) => {
                 {item.name}
               </h4>
             </Link>
-            <p className="font-body text-xs text-earth-400 mt-0.5">{item.size}</p>
+            <p className="font-body text-xs text-earth-400 mt-0.5">
+              {item.size}
+            </p>
           </div>
           <button
             onClick={handleRemove}
             className="shrink-0 p-1 text-earth-400 hover:text-spice-600 transition-colors rounded"
             aria-label="Remove item"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -74,7 +92,7 @@ const CartItem = ({ item }) => {
               −
             </button>
             <span className="w-8 h-8 flex items-center justify-center font-body font-bold text-sm text-earth-900 border-x border-earth-200">
-              {updating ? '…' : item.quantity}
+              {updating ? "…" : item.quantity}
             </span>
             <button
               onClick={() => handleQtyChange(item.quantity + 1)}
@@ -85,13 +103,13 @@ const CartItem = ({ item }) => {
             </button>
           </div>
 
-          <span className="font-display font-bold text-earth-900 text-base">
-            {formatPrice(item.price * item.quantity)}
+          <span className="font-medium text-earth-800">
+            ₹{item.price * item.quantity}
           </span>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CartItem
+export default CartItem;
