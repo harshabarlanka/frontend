@@ -331,8 +331,11 @@ const ProductDetailPage = () => {
             {/* Trust badges */}
             <div className="grid grid-cols-3 gap-3 pt-2">
               {[
-                { icon: "🚚", text: "Free shipping over ₹500" },
-                { icon: "↩️", text: "7-day easy returns" },
+                { icon: "🚚", text: "Free shipping over ₹999" },
+                {
+                  icon: "↩️",
+                  text: "7-days hassle-free returns on damaged items",
+                },
                 { icon: "🌿", text: "No preservatives" },
               ].map(({ icon, text }) => (
                 <div
