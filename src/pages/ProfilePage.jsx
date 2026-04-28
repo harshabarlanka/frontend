@@ -278,7 +278,7 @@ const AddressesTab = ({ user, updateUser }) => {
           onClick={() => setShowForm(true)}
           className="btn-secondary w-full"
         >
-          + Add New Address
+          New Address
         </button>
       )}
 

@@ -174,7 +174,7 @@ const Navbar = () => {
                     {/* Account links */}
                     <div className="py-1">
                       <DropLink to="/profile" icon="👤" label="My Profile" onClick={() => setUserDrop(false)} />
-                      <DropLink to="/profile?tab=Addresses" icon="📍" label="My Addresses" onClick={() => setUserDrop(false)} />
+                      {/* <DropLink to="/profile?tab=Addresses" icon="📍" label="My Addresses" onClick={() => setUserDrop(false)} /> */}
                       <DropLink to="/orders" icon="📦" label="My Orders" onClick={() => setUserDrop(false)} />
                     </div>
 
