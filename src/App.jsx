@@ -244,6 +244,17 @@ const App = () => (
           </ProtectedRoute>
         }
       />
+      {/* /account is an alias for /profile */}
+      <Route
+        path="/account"
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ProfilePage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* ───────── ADMIN ───────── */}
 

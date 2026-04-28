@@ -5,3 +5,5 @@ export const changePasswordAPI = (data) => api.patch('/users/change-password', d
 export const addAddressAPI     = (data) => api.post('/users/address', data)
 export const updateAddressAPI  = (id, data) => api.put(`/users/address/${id}`, data)
 export const deleteAddressAPI  = (id)   => api.delete(`/users/address/${id}`)
+// Fetch fresh addresses by re-fetching /auth/me (no dedicated endpoint needed)
+export const getAddressesAPI   = () => api.get('/auth/me')
