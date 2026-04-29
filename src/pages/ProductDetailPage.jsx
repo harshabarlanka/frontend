@@ -9,6 +9,7 @@ import Badge from "../components/common/Badge";
 import ErrorState from "../components/common/ErrorState";
 import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import toast from "react-hot-toast";
+import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
 
 const ProductDetailPage = () => {
   const { slug } = useParams();
@@ -462,6 +463,11 @@ const ProductDetailPage = () => {
             )}
           </div>
         </div>
+
+        {/* You May Also Like */}
+        {product && (
+          <YouMayAlsoLike excludeIds={[product._id]} />
+        )}
       </div>
     </div>
   );

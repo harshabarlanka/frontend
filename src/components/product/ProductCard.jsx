@@ -39,7 +39,7 @@ const ProductCard = ({ product }) => {
   return (
     <Link
       to={`/product/${product.slug}`}
-      className="group overflow-hidden rounded-[28px] border border-white/70 bg-white p-4
+      className="group overflow-hidden rounded-[28px] bg-white
       shadow-[0_18px_55px_rgba(15,23,42,0.07)]
       transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)]"
     >
@@ -75,7 +75,7 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Content */}
-      <div className="px-1 pb-1 pt-3 space-y-1.5">
+      <div className="p-4 pt-3 space-y-1.5">
         <h3 className="text-[15px] sm:text-[16px] font-medium tracking-[0.05em] text-[#b4532a] leading-tight line-clamp-2 min-h-[36px] sm:min-h-[40px]">
           {product.name}
         </h3>

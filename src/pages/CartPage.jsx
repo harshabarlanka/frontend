@@ -5,6 +5,7 @@ import CartItemComponent from "../components/cart/CartItem";
 import EmptyState from "../components/common/EmptyState";
 import { InlineLoader } from "../components/common/Loader";
 import { formatPrice } from "../utils";
+import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
 
 const SHIPPING_THRESHOLD = 999;
 
@@ -167,6 +168,11 @@ const CartPage = () => {
             </div>
           </div>
         </div>
+
+        {/* You May Also Like */}
+        <YouMayAlsoLike
+          excludeIds={items.map((item) => item.productId?._id ?? item.productId)}
+        />
       </div>
     </div>
   );
