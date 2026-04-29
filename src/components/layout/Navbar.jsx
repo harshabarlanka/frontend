@@ -251,7 +251,7 @@ const Navbar = () => {
 
                   {/* Account nav links */}
                   <MobileNavLink to="/profile" icon="👤" label="My Profile" onClick={() => setMenuOpen(false)} />
-                  <MobileNavLink to="/profile?tab=Addresses" icon="📍" label="My Addresses" onClick={() => setMenuOpen(false)} />
+                  {/* <MobileNavLink to="/profile?tab=Addresses" icon="📍" label="My Addresses" onClick={() => setMenuOpen(false)} /> */}
                   <MobileNavLink to="/orders" icon="📦" label="My Orders" onClick={() => setMenuOpen(false)} />
 
                   {isAdmin && (

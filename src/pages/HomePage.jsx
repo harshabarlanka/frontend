@@ -10,13 +10,14 @@ import {
   FiShoppingBag,
   FiStar,
   FiTruck,
+  FiInstagram,
 } from "react-icons/fi";
-import { getProductsAPI } from "../api/product.api";
+import { getBestsellersAPI } from "../api/product.api";
 import { CATEGORIES } from "../constants/constants_index";
 import heroBanner from "../assets/banner.jpeg";
 import ProductCard from "../components/product/ProductCard";
 import logo from "../assets/banner_logo.jpeg";
-import { FiInstagram } from "react-icons/fi";
+
 const TESTIMONIALS = [
   {
     name: "Suresh K.",
@@ -28,7 +29,7 @@ const TESTIMONIALS = [
     name: "Ramu C.",
     city: "Visakhapatnam",
     text: "Best non-veg pickle I've ever tasted. My wife ordered three packs already!",
-    stars: 4.5,
+    stars: 5,
   },
   {
     name: "Srinivas Rao.",
@@ -61,30 +62,41 @@ const TRUST_POINTS = [
   },
 ];
 
+const SkeletonCard = () => (
+  <div className="overflow-hidden rounded-[24px] border border-white/70 bg-white p-4 shadow-[0_16px_45px_rgba(15,23,42,0.06)]">
+    <div className="aspect-square animate-pulse rounded-[20px] bg-earth-100" />
+    <div className="mt-4 h-4 w-24 animate-pulse rounded bg-earth-100" />
+    <div className="mt-3 h-6 w-3/4 animate-pulse rounded bg-earth-100" />
+    <div className="mt-4 h-5 w-28 animate-pulse rounded bg-earth-100" />
+  </div>
+);
+
 const HomePage = () => {
-  const [featured, setFeatured] = useState([]);
+  const [bestsellers, setBestsellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef(null);
 
   useEffect(() => {
+    let cancelled = false;
     const load = async () => {
       try {
-        const { data } = await getProductsAPI({ featured: true, limit: 6 });
-        setFeatured(data?.data?.products ?? []);
+        const { data } = await getBestsellersAPI({ limit: 4 });
+        if (!cancelled) setBestsellers(data?.data?.products ?? []);
       } catch {
+        // fail silently; section stays empty
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
-
     load();
+    return () => { cancelled = true; };
   }, []);
 
   return (
     <div className="relative overflow-hidden bg-white text-earth-900 animate-fade-in">
       {/* Floating CTA */}
       <Link
-        to="/products/all"
+        to="/products/all?sort=-createdAt"
         className="fixed bottom-5 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-earth-950 px-5 py-3 text-sm font-semibold text-white shadow-2xl shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:bg-earth-900 sm:bottom-6 sm:right-6"
       >
         <FiShoppingBag className="text-base" />
@@ -92,22 +104,12 @@ const HomePage = () => {
       </Link>
 
       {/* Hero */}
-      {/* Hero */}
       <section className="relative w-full">
-        {/* Background Image */}
         <img
           src={heroBanner}
           alt="Naidu Gari Ruchulu Banner"
-          className="
-      w-full 
-      h-[260px] sm:h-[340px] md:h-[440px] 
-      lg:h-[600px] xl:h-[670px]
-      object-cover 
-      object-[25%_center]
-    "
+          className="w-full h-[260px] sm:h-[340px] md:h-[440px] lg:h-[600px] xl:h-[670px] object-cover object-[25%_center]"
         />
-
-        {/* Overlay (light for readability) */}
         <div className="absolute inset-0 bg-black/30 sm:bg-black/40" />
       </section>
 
@@ -121,8 +123,7 @@ const HomePage = () => {
                   Fresh Batch Ready
                 </p>
                 <h2 className="mt-2 text-xl font-semibold text-earth-950 sm:text-2xl">
-                  Spicy pickles, tasty sweets, and crunchy snacks — all in one
-                  place.
+                  Spicy pickles, tasty sweets, and crunchy snacks — all in one place.
                 </h2>
               </div>
 
@@ -133,7 +134,7 @@ const HomePage = () => {
                 </div>
 
                 <Link
-                  to="/products/all"
+                  to="/products/all?sort=-createdAt"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-700"
                 >
                   Order Now
@@ -157,30 +158,19 @@ const HomePage = () => {
                 Choose your favourite flavours.
               </h2>
               <p className="mt-3 text-sm leading-7 text-earth-500 sm:text-base">
-                From spicy pickles to traditional sweets — something for every
-                craving.
+                From spicy pickles to traditional sweets — something for every craving.
               </p>
             </div>
 
             <div className="hidden items-center gap-3 sm:flex">
               <button
-                onClick={() =>
-                  scrollRef.current?.scrollBy({
-                    left: -320,
-                    behavior: "smooth",
-                  })
-                }
+                onClick={() => scrollRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
                 className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-earth-200 bg-white text-earth-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <FiChevronLeft size={20} />
               </button>
               <button
-                onClick={() =>
-                  scrollRef.current?.scrollBy({
-                    left: 320,
-                    behavior: "smooth",
-                  })
-                }
+                onClick={() => scrollRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
                 className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-earth-200 bg-white text-earth-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <FiChevronRight size={20} />
@@ -192,10 +182,7 @@ const HomePage = () => {
             <div className="pointer-events-none absolute left-0 top-0 z-10 hidden h-full w-16 bg-gradient-to-r from-[#faf7f3] to-transparent sm:block" />
             <div className="pointer-events-none absolute right-0 top-0 z-10 hidden h-full w-16 bg-gradient-to-l from-[#faf7f3] to-transparent sm:block" />
 
-            <div
-              ref={scrollRef}
-              className="flex gap-4 overflow-x-auto pb-4 no-scrollbar sm:gap-5"
-            >
+            <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-4 no-scrollbar sm:gap-5">
               {CATEGORIES.map((cat, index) => (
                 <Link
                   key={cat.value}
@@ -213,9 +200,7 @@ const HomePage = () => {
                       <div className="inline-flex rounded-full bg-white/15 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur-sm">
                         {String(index + 1).padStart(2, "0")}
                       </div>
-                      <h3 className="mt-3 text-2xl font-semibold text-white">
-                        {cat.label}
-                      </h3>
+                      <h3 className="mt-3 text-2xl font-semibold text-white">{cat.label}</h3>
                       <p className="mt-2 max-w-[220px] text-sm leading-6 text-white/80">
                         Authentic taste, just like home.
                       </p>
@@ -243,15 +228,13 @@ const HomePage = () => {
               Why Our Customers Love Us
             </h2>
             <p className="mt-3 text-sm leading-7 text-earth-500 sm:text-base">
-              We focus on real taste, quality, and freshness — just like
-              homemade food should be.
+              We focus on real taste, quality, and freshness — just like homemade food should be.
             </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {TRUST_POINTS.map((item) => {
               const Icon = item.icon;
-
               return (
                 <div
                   key={item.title}
@@ -260,12 +243,8 @@ const HomePage = () => {
                   <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 transition-transform duration-300 group-hover:scale-110">
                     <Icon size={20} />
                   </div>
-                  <h3 className="mt-5 text-xl font-semibold text-earth-950">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-7 text-earth-500">
-                    {item.text}
-                  </p>
+                  <h3 className="mt-5 text-xl font-semibold text-earth-950">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-earth-500">{item.text}</p>
                 </div>
               );
             })}
@@ -273,7 +252,7 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Featured products */}
+      {/* Best Sellers */}
       <section className="bg-[radial-gradient(circle_at_top,#fff7ed,transparent_42%),linear-gradient(to_bottom,#ffffff,#fffaf5)] py-14 sm:py-18 lg:py-24">
         <div className="page-container">
           <div className="mb-8 flex flex-col gap-4 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
@@ -290,7 +269,7 @@ const HomePage = () => {
             </div>
 
             <Link
-              to="/products/all?featured=true"
+              to="/products/bestsellers"
               className="inline-flex items-center gap-2 self-start rounded-full border border-earth-200 bg-white px-5 py-3 text-sm font-semibold text-earth-800 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
             >
               View All
@@ -300,21 +279,13 @@ const HomePage = () => {
 
           {loading ? (
             <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="overflow-hidden rounded-[24px] border border-white/70 bg-white p-4 shadow-[0_16px_45px_rgba(15,23,42,0.06)]"
-                >
-                  <div className="aspect-square animate-pulse rounded-[20px] bg-earth-100" />
-                  <div className="mt-4 h-4 w-24 animate-pulse rounded bg-earth-100" />
-                  <div className="mt-3 h-6 w-3/4 animate-pulse rounded bg-earth-100" />
-                  <div className="mt-4 h-5 w-28 animate-pulse rounded bg-earth-100" />
-                </div>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <SkeletonCard key={i} />
               ))}
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-3 lg:grid-cols-4 animate-fade-in">
-              {featured.map((product) => (
+              {bestsellers.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}
             </div>
@@ -330,13 +301,7 @@ const HomePage = () => {
               <img
                 src={logo}
                 alt="Authentic homemade food"
-                className="
-    w-full 
-    h-[260px] sm:h-[320px] md:h-full
-    object-cover 
-    object-[center_20%] sm:object-center
-    rounded-[24px] sm:rounded-[32px]
-  "
+                className="w-full h-[260px] sm:h-[320px] md:h-full object-cover object-[center_20%] sm:object-center rounded-[24px] sm:rounded-[32px]"
               />
             </div>
 
@@ -348,12 +313,10 @@ const HomePage = () => {
                 Real Taste, Just Like Home
               </h2>
               <p className="mt-4 text-sm leading-7 text-earth-500 sm:text-base">
-                Our recipes come from home kitchens, made with care and
-                traditional methods passed down over time.
+                Our recipes come from home kitchens, made with care and traditional methods passed down over time.
               </p>
               <p className="mt-4 text-sm leading-7 text-earth-500 sm:text-base">
-                We bring you authentic Andhra flavours so you can enjoy real
-                homemade taste anywhere in India.
+                We bring you authentic Andhra flavours so you can enjoy real homemade taste anywhere in India.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -368,7 +331,7 @@ const HomePage = () => {
                 </a>
 
                 <Link
-                  to="/products/all?featured=true"
+                  to="/products/bestsellers"
                   className="inline-flex items-center justify-center rounded-full border border-earth-200 px-6 py-3 text-sm font-semibold text-earth-800 transition-all duration-300 hover:bg-earth-50"
                 >
                   Shop Best Sellers
@@ -404,14 +367,12 @@ const HomePage = () => {
                 className="rounded-[28px] border border-white/60 bg-white/60 p-6 shadow-[0_18px_55px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_70px_rgba(15,23,42,0.12)]"
               >
                 <div className="mb-5 flex gap-1 text-brand-500">
-                  {Array.from({ length: t.stars }).map((_, index) => (
-                    <FiStar key={index} className="fill-current" />
+                  {Array.from({ length: t.stars }).map((_, i) => (
+                    <FiStar key={i} className="fill-current" />
                   ))}
                 </div>
 
-                <p className="text-base leading-8 text-earth-700">
-                  &quot;{t.text}&quot;
-                </p>
+                <p className="text-base leading-8 text-earth-700">&quot;{t.text}&quot;</p>
 
                 <div className="mt-6 border-t border-earth-100 pt-5">
                   <p className="font-semibold text-earth-950">{t.name}</p>

@@ -12,37 +12,20 @@ const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const [adding, setAdding] = useState(false);
 
-  // ✅ Get lowest price variant
   const variant = product.variants?.length
     ? product.variants.reduce((min, v) => (v.price < min.price ? v : min))
     : null;
 
-  // ✅ Check multiple variants
   const hasMultipleVariants = product.variants?.length > 1;
-
-  // ✅ Rating logic (FIXED)
   const hasRatings = product.ratings?.count > 0;
-
-  const getFallbackRating = () => {
-    return Number((Math.random() * (4.5 - 3.8) + 3.8).toFixed(1));
-  };
-
-  const displayRating = hasRatings
-    ? product.ratings.average
-    : getFallbackRating();
-
-  const displayCount = hasRatings ? product.ratings.count : null;
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
-
     if (!user) {
       navigate("/login");
       return;
     }
-
     if (!variant) return;
-
     try {
       setAdding(true);
       await addToCart(product._id, variant._id, 1);
@@ -56,8 +39,8 @@ const ProductCard = ({ product }) => {
   return (
     <Link
       to={`/product/${product.slug}`}
-      className="group overflow-hidden rounded-[28px] border border-white/70 bg-white p-4 
-      shadow-[0_18px_55px_rgba(15,23,42,0.07)] 
+      className="group overflow-hidden rounded-[28px] border border-white/70 bg-white p-4
+      shadow-[0_18px_55px_rgba(15,23,42,0.07)]
       transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)]"
     >
       {/* Image */}
@@ -74,15 +57,12 @@ const ProductCard = ({ product }) => {
           </div>
         )}
 
-        {/* Overlay */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-        {/* Category Badge */}
         <div className="hidden sm:block absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-earth-900 backdrop-blur-sm">
           {product.category}
         </div>
 
-        {/* View Button (desktop only) */}
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -96,37 +76,39 @@ const ProductCard = ({ product }) => {
 
       {/* Content */}
       <div className="px-1 pb-1 pt-3 space-y-1.5">
-        {/* Title */}
         <h3 className="text-[15px] sm:text-[16px] font-medium tracking-[0.05em] text-[#b4532a] leading-tight line-clamp-2 min-h-[36px] sm:min-h-[40px]">
           {product.name}
         </h3>
 
-        {/* ⭐ Rating */}
-        <div className="mt-2 flex items-center">
-          <StarRating rating={displayRating} size="sm" />
-          <span className="ml-1 text-[#b4532a] text-[12px]">
-            {hasRatings ? `(${displayCount})` : "New"}
-          </span>
+        {/* Rating */}
+        <div className="mt-2 flex items-center gap-1">
+          {hasRatings ? (
+            <>
+              <StarRating rating={product.ratings.average} size="sm" />
+              <span className="ml-1 text-[#b4532a] text-[12px]">
+                ({product.ratings.count})
+              </span>
+            </>
+          ) : (
+            <span className="text-[12px] text-earth-400">New</span>
+          )}
         </div>
 
-        {/* 💰 Price Section */}
+        {/* Price */}
         <div className="mt-3 sm:mt-4 flex items-center justify-between gap-3">
           <div className="mt-2">
-            {" "}
-            <p className="text-[16px] sm:text-[18px] font-semibold text-[#b4532a]">
-              {" "}
-              {hasMultipleVariants ? "From Rs. " : "Rs. "}{" "}
-              {(variant?.price ?? 0).toFixed(2)}{" "}
-            </p>{" "}
+            <p className="text-sm sm:text-base font-semibold text-[#b4532a]">
+              {hasMultipleVariants ? "From Rs. " : "Rs. "}
+              {(variant?.price ?? 0).toFixed(2)}
+            </p>
+
             {variant?.mrp > variant?.price && (
-              <p className="text-[12px] text-[#b4532a]/60 line-through">
-                {" "}
-                Rs. {variant.mrp?.toFixed(2)}{" "}
+              <p className="text-xs text-[#b4532a]/60 line-through">
+                Rs. {variant.mrp?.toFixed(2)}
               </p>
-            )}{" "}
+            )}
           </div>
 
-          {/* Arrow Button */}
           <button
             onClick={(e) => {
               e.preventDefault();
