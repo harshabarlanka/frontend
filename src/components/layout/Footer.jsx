@@ -66,7 +66,7 @@ const Footer = () => (
               },
               { to: "/products?category=sweets", label: "Sweets" },
               { to: "/products?category=snacks", label: "Snacks" },
-              { to: "/products?featured=true", label: "Best Sellers" },
+              { to: "/products?tag=bestseller", label: "Best Sellers" },
             ].map(({ to, label }) => (
               <li key={label}>
                 <Link

@@ -19,7 +19,6 @@ import FAQ from "./pages/FAQ";
 import AdminRoute from "./components/admin/AdminRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import ResetPassword from "./pages/ResetPassword";
-import CategoryRedirect from "./pages/CategoryRedirect";
 
 // Core pages
 import HomePage from "./pages/HomePage";
@@ -70,20 +69,23 @@ const App = () => (
       {/* ─── PUBLIC ─── */}
       <Route path="/" element={<MainLayout noPad><HomePage /></MainLayout>} />
 
-      {/* Products redirect */}
-      <Route path="/products" element={<CategoryRedirect />} />
-
-      {/* Best sellers — must come BEFORE /:category */}
+      {/* ✅ Single unified products route — all filtering via query params */}
+      {/* Examples:
+            /products                              → all products, newest first
+            /products?sort=-ratings.average        → top rated
+            /products?category=veg-pickles         → category filter
+            /products?tag=bestseller               → bestsellers
+            /products?category=veg-pickles&sort=minPrice&page=2  → combined
+      */}
       <Route
-        path="/products/bestsellers"
+        path="/products"
         element={<MainLayout><ProductsPage /></MainLayout>}
       />
 
-      {/* Category (SEO) */}
-      <Route
-        path="/products/:category"
-        element={<MainLayout><ProductsPage /></MainLayout>}
-      />
+      {/* Legacy redirects — catch old dynamic routes and send to /products */}
+      <Route path="/products/bestsellers" element={<LegacyRedirect to="/products?tag=bestseller" />} />
+      <Route path="/products/all" element={<LegacyRedirect to="/products" />} />
+      <Route path="/products/:category" element={<LegacyCategoryRedirect />} />
 
       {/* Product detail */}
       <Route
@@ -144,5 +146,33 @@ const App = () => (
     </Routes>
   </Suspense>
 );
+
+// ─── Legacy redirect helpers ──────────────────────────────────────────────────
+
+import { Navigate, useParams, useLocation } from "react-router-dom";
+
+/** Redirect a fixed old URL to a new one, preserving existing query params. */
+const LegacyRedirect = ({ to }) => {
+  const { search } = useLocation();
+  const [base, newSearch] = to.split("?");
+  const merged = new URLSearchParams(search);
+  if (newSearch) {
+    new URLSearchParams(newSearch).forEach((v, k) => merged.set(k, v));
+  }
+  const qs = merged.toString();
+  return <Navigate to={`${base}${qs ? `?${qs}` : ""}`} replace />;
+};
+
+/**
+ * Redirect /products/:category  →  /products?category=:category
+ * Preserves any extra query params (sort, page) from the old URL.
+ */
+const LegacyCategoryRedirect = () => {
+  const { category } = useParams();
+  const { search } = useLocation();
+  const params = new URLSearchParams(search);
+  params.set("category", category);
+  return <Navigate to={`/products?${params.toString()}`} replace />;
+};
 
 export default App;

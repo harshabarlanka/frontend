@@ -96,7 +96,7 @@ const HomePage = () => {
     <div className="relative overflow-hidden bg-white text-earth-900 animate-fade-in">
       {/* Floating CTA */}
       <Link
-        to="/products/all?sort=-createdAt"
+        to="/products?sort=-createdAt"
         className="fixed bottom-5 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-earth-950 px-5 py-3 text-sm font-semibold text-white shadow-2xl shadow-black/20 transition-all duration-300 hover:-translate-y-1 hover:bg-earth-900 sm:bottom-6 sm:right-6"
       >
         <FiShoppingBag className="text-base" />
@@ -134,7 +134,7 @@ const HomePage = () => {
                 </div>
 
                 <Link
-                  to="/products/all?sort=-createdAt"
+                  to="/products?sort=-createdAt"
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-brand-600 px-5 py-3 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-brand-700"
                 >
                   Order Now
@@ -186,7 +186,7 @@ const HomePage = () => {
               {CATEGORIES.map((cat, index) => (
                 <Link
                   key={cat.value}
-                  to={`/products/${cat.value}`}
+                  to={`/products?category=${cat.value}`}
                   className="group relative min-w-[240px] sm:min-w-[280px] lg:min-w-[320px]"
                 >
                   <div className="relative aspect-[0.92] overflow-hidden rounded-[28px] bg-earth-200 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
@@ -269,7 +269,7 @@ const HomePage = () => {
             </div>
 
             <Link
-              to="/products/bestsellers"
+              to="/products?tag=bestseller"
               className="inline-flex items-center gap-2 self-start rounded-full border border-earth-200 bg-white px-5 py-3 text-sm font-semibold text-earth-800 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
             >
               View All
@@ -331,7 +331,7 @@ const HomePage = () => {
                 </a>
 
                 <Link
-                  to="/products/bestsellers"
+                  to="/products?tag=bestseller"
                   className="inline-flex items-center justify-center rounded-full border border-earth-200 px-6 py-3 text-sm font-semibold text-earth-800 transition-all duration-300 hover:bg-earth-50"
                 >
                   Shop Best Sellers

@@ -1,25 +1,75 @@
+/**
+ * Navbar.jsx
+ *
+ * Active link logic:
+ *   - "/" is active only on the home route
+ *   - Category links are active when URL contains ?category=<value>
+ *   - "Best Sellers" would be active when URL contains ?tag=bestseller
+ *     (not currently in nav, but Navbar reads it correctly if added)
+ */
+
 import { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import logo from "../../assets/logo.png";
+
+// ── Nav link definitions ──────────────────────────────────────────────────────
+// Each entry maps a display label to the URL it produces when clicked.
+// `activeWhen` is a function(searchParams, pathname) → boolean.
+
+const NAV_LINKS = [
+  {
+    label: "Home",
+    to: "/",
+    activeWhen: (_sp, pathname) => pathname === "/",
+  },
+  {
+    label: "Veg Pickles",
+    to: "/products?category=veg-pickles",
+    activeWhen: (sp) => sp.get("category") === "veg-pickles",
+  },
+  {
+    label: "Non Veg",
+    to: "/products?category=non-veg-pickles",
+    activeWhen: (sp) => sp.get("category") === "non-veg-pickles",
+  },
+  {
+    label: "Podis",
+    to: "/products?category=podis",
+    activeWhen: (sp) => sp.get("category") === "podis",
+  },
+  {
+    label: "Sweets",
+    to: "/products?category=sweets",
+    activeWhen: (sp) => sp.get("category") === "sweets",
+  },
+  {
+    label: "Snacks",
+    to: "/products?category=snacks",
+    activeWhen: (sp) => sp.get("category") === "snacks",
+  },
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const Navbar = () => {
   const { user, logout, isAdmin } = useAuth();
   const { cartCount } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [userDrop, setUserDrop] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const dropRef = useRef(null);
 
-  const params = new URLSearchParams(location.search);
-  const currentCategory = params.get("category");
-
   // Close mobile menu on route change
-  useEffect(() => { setMenuOpen(false); setUserDrop(false); }, [location.pathname]);
+  useEffect(() => {
+    setMenuOpen(false);
+    setUserDrop(false);
+  }, [location.pathname, location.search]);
 
   // Scroll shadow
   useEffect(() => {
@@ -58,15 +108,23 @@ const Navbar = () => {
     navigate("/");
   };
 
-  const navLinkCls = (category) =>
+  // ── Active class helper ─────────────────────────────────────────────────────
+  // Checks the activeWhen predicate for each nav item using live searchParams.
+  const isActive = (link) => link.activeWhen(searchParams, location.pathname);
+
+  const desktopLinkCls = (link) =>
     `font-body font-semibold text-sm tracking-wide transition ${
-      currentCategory === category
+      isActive(link)
         ? "text-brand-600"
         : "text-earth-700 hover:text-brand-600"
     }`;
 
-  const mobileNavLinkBase =
-    "block font-body font-semibold text-sm text-earth-700 hover:text-brand-600 py-2.5 transition";
+  const mobileLinkCls = (link) =>
+    `block font-body font-semibold text-sm py-2.5 transition ${
+      isActive(link)
+        ? "text-brand-600"
+        : "text-earth-700 hover:text-brand-600"
+    }`;
 
   return (
     <header
@@ -94,28 +152,19 @@ const Navbar = () => {
 
           {/* DESKTOP NAV */}
           <nav className="hidden md:flex items-center gap-8">
-            <NavLink to="/" end className={() => navLinkCls(null)}>
-              Home
-            </NavLink>
-            <NavLink to="/products?category=veg-pickles" className={() => navLinkCls("veg-pickles")}>
-              Veg Pickles
-            </NavLink>
-            <NavLink to="/products?category=non-veg-pickles" className={() => navLinkCls("non-veg-pickles")}>
-              Non Veg
-            </NavLink>
-            <NavLink to="/products?category=podis" className={() => navLinkCls("podis")}>
-              Podis
-            </NavLink>
-            <NavLink to="/products?category=sweets" className={() => navLinkCls("sweets")}>
-              Sweets
-            </NavLink>
-            <NavLink to="/products?category=snacks" className={() => navLinkCls("snacks")}>
-              Snacks
-            </NavLink>
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                to={link.to}
+                className={desktopLinkCls(link)}
+              >
+                {link.label}
+              </Link>
+            ))}
             {isAdmin && (
-              <NavLink to="/admin" className={() => `${navLinkCls(null)} text-spice-600`}>
+              <Link to="/admin" className="font-body font-semibold text-sm tracking-wide text-spice-600 hover:text-spice-700 transition">
                 Admin
-              </NavLink>
+              </Link>
             )}
           </nav>
 
@@ -147,7 +196,6 @@ const Navbar = () => {
                   aria-label="Account menu"
                   className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-earth-50 transition"
                 >
-                  {/* Avatar circle */}
                   <div className="w-7 h-7 rounded-full bg-brand-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
                     {user.name?.charAt(0).toUpperCase()}
                   </div>
@@ -162,30 +210,21 @@ const Navbar = () => {
                   </svg>
                 </button>
 
-                {/* DROPDOWN */}
                 {userDrop && (
                   <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-xl border border-earth-100 py-1.5 animate-fade-in">
-                    {/* User info header */}
                     <div className="px-4 py-2.5 border-b border-earth-100">
                       <p className="font-body text-xs font-bold text-earth-800 truncate">{user.name}</p>
                       <p className="font-body text-xs text-earth-400 truncate mt-0.5">{user.email}</p>
                     </div>
-
-                    {/* Account links */}
                     <div className="py-1">
                       <DropLink to="/profile" icon="👤" label="My Profile" onClick={() => setUserDrop(false)} />
-                      {/* <DropLink to="/profile?tab=Addresses" icon="📍" label="My Addresses" onClick={() => setUserDrop(false)} /> */}
                       <DropLink to="/orders" icon="📦" label="My Orders" onClick={() => setUserDrop(false)} />
                     </div>
-
-                    {/* Admin */}
                     {isAdmin && (
                       <div className="border-t border-earth-100 py-1">
                         <DropLink to="/admin" icon="⚙️" label="Admin Panel" className="text-spice-600 hover:bg-spice-50" onClick={() => setUserDrop(false)} />
                       </div>
                     )}
-
-                    {/* Logout */}
                     <div className="border-t border-earth-100 py-1">
                       <button
                         onClick={handleLogout}
@@ -220,25 +259,25 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* ── MOBILE MENU ────────────────────────────────────────────────── */}
+        {/* ── MOBILE MENU ─────────────────────────────────────────────────────── */}
         {menuOpen && (
           <div className="md:hidden border-t border-earth-100 animate-slide-up">
             <div className="py-3 flex flex-col">
-
-              {/* Category links */}
               <div className="space-y-0.5 pb-3">
-                <NavLink to="/" end className={() => mobileNavLinkBase} onClick={() => setMenuOpen(false)}>Home</NavLink>
-                <NavLink to="/products?category=veg-pickles" className={() => mobileNavLinkBase} onClick={() => setMenuOpen(false)}>Veg Pickles</NavLink>
-                <NavLink to="/products?category=non-veg-pickles" className={() => mobileNavLinkBase} onClick={() => setMenuOpen(false)}>Non Veg Pickles</NavLink>
-                <NavLink to="/products?category=podis" className={() => mobileNavLinkBase} onClick={() => setMenuOpen(false)}>Podis</NavLink>
-                <NavLink to="/products?category=sweets" className={() => mobileNavLinkBase} onClick={() => setMenuOpen(false)}>Sweets</NavLink>
-                <NavLink to="/products?category=snacks" className={() => mobileNavLinkBase} onClick={() => setMenuOpen(false)}>Snacks</NavLink>
+                {NAV_LINKS.map((link) => (
+                  <Link
+                    key={link.label}
+                    to={link.to}
+                    className={mobileLinkCls(link)}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
 
-              {/* ── Account section (logged in) ── */}
               {user ? (
                 <div className="border-t border-earth-100 pt-3 space-y-0.5">
-                  {/* User identity */}
                   <div className="flex items-center gap-3 py-2 mb-1">
                     <div className="w-9 h-9 rounded-full bg-brand-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
                       {user.name?.charAt(0).toUpperCase()}
@@ -248,17 +287,11 @@ const Navbar = () => {
                       <p className="font-body text-xs text-earth-400 truncate">{user.email}</p>
                     </div>
                   </div>
-
-                  {/* Account nav links */}
                   <MobileNavLink to="/profile" icon="👤" label="My Profile" onClick={() => setMenuOpen(false)} />
-                  {/* <MobileNavLink to="/profile?tab=Addresses" icon="📍" label="My Addresses" onClick={() => setMenuOpen(false)} /> */}
                   <MobileNavLink to="/orders" icon="📦" label="My Orders" onClick={() => setMenuOpen(false)} />
-
                   {isAdmin && (
                     <MobileNavLink to="/admin" icon="⚙️" label="Admin Panel" onClick={() => setMenuOpen(false)} className="text-spice-600" />
                   )}
-
-                  {/* Logout */}
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 py-2.5 text-sm font-body font-semibold text-earth-500 hover:text-spice-600 transition-colors mt-1 border-t border-earth-100 pt-3"
@@ -268,7 +301,6 @@ const Navbar = () => {
                   </button>
                 </div>
               ) : (
-                /* ── Auth buttons (logged out) ── */
                 <div className="border-t border-earth-100 pt-3 flex gap-2">
                   <Link to="/login" className="flex-1 btn-secondary text-sm text-center" onClick={() => setMenuOpen(false)}>Login</Link>
                   <Link to="/register" className="flex-1 btn-primary text-sm text-center" onClick={() => setMenuOpen(false)}>Sign Up</Link>
@@ -282,7 +314,7 @@ const Navbar = () => {
   );
 };
 
-/* ── Small reusable sub-components ────────────────────────────────────────── */
+/* ── Sub-components ─────────────────────────────────────────────────────────── */
 
 const DropLink = ({ to, icon, label, onClick, className = "" }) => (
   <Link
