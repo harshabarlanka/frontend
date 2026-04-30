@@ -32,21 +32,26 @@ const ProductGrid = ({ products, loading, error }) => {
 
   return (
     <div className="relative">
-      {/* ✅ Product grid */}
+      {/* ✅ Product Grid */}
       <div
         className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 transition-all duration-300 ${
           loading ? "opacity-70" : "opacity-100"
         }`}
       >
-        {products.map((product) => (
-          <ProductCard key={product._id} product={product} />
+        {products.map((product, index) => (
+          <div
+            key={product._id}
+            style={{ transitionDelay: `${index * 40}ms` }} // 🔥 subtle stagger
+          >
+            <ProductCard product={product} />
+          </div>
         ))}
       </div>
 
-      {/* ✅ Shimmer overlay instead of spinner */}
+      {/* ✅ Shimmer overlay (no spinner) */}
       {loading && products.length > 0 && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.2s_infinite]" />
+          <div className="w-full h-full shimmer opacity-60" />
         </div>
       )}
     </div>

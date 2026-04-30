@@ -3,14 +3,16 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import StarRating from "../common/StarRating";
-import { formatPrice, getErrorMessage } from "../../utils";
+import { getErrorMessage } from "../../utils";
 import toast from "react-hot-toast";
 
 const ProductCard = ({ product }) => {
   const { user } = useAuth();
   const { addToCart } = useCart();
   const navigate = useNavigate();
+
   const [adding, setAdding] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false); // ✅ NEW
 
   const variant = product.variants?.length
     ? product.variants.reduce((min, v) => (v.price < min.price ? v : min))
@@ -21,11 +23,14 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
+
     if (!user) {
       navigate("/login");
       return;
     }
+
     if (!variant) return;
+
     try {
       setAdding(true);
       await addToCart(product._id, variant._id, 1);
@@ -45,11 +50,19 @@ const ProductCard = ({ product }) => {
     >
       {/* Image */}
       <div className="relative overflow-hidden rounded-[22px]">
+        {/* ✅ Skeleton shimmer before image loads */}
+        {!imgLoaded && (
+          <div className="absolute inset-0 bg-gradient-to-r from-earth-200 via-earth-100 to-earth-200 animate-pulse" />
+        )}
+
         {product.images?.[0] ? (
           <img
             src={product.images[0]}
             alt={product.name}
-            className="aspect-[1.02] w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            onLoad={() => setImgLoaded(true)}
+            className={`aspect-[1.02] w-full object-cover transition-all duration-700 ${
+              imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"
+            }`}
           />
         ) : (
           <div className="aspect-[1.02] flex items-center justify-center text-6xl bg-earth-50">
@@ -57,12 +70,15 @@ const ProductCard = ({ product }) => {
           </div>
         )}
 
+        {/* Overlay */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
+        {/* Category */}
         <div className="hidden sm:block absolute left-3 top-3 rounded-full bg-white/85 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-earth-900 backdrop-blur-sm">
           {product.category}
         </div>
 
+        {/* View button */}
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -80,7 +96,7 @@ const ProductCard = ({ product }) => {
           {product.name}
         </h3>
 
-        {/* Rating */}
+        {/* Ratings */}
         <div className="mt-2 flex items-center gap-1">
           {hasRatings ? (
             <>
