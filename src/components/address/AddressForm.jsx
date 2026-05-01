@@ -1,15 +1,4 @@
-/**
- * AddressForm — reusable form for adding OR editing a saved address.
- *
- * Props:
- *   initial       – pre-filled address object (for edit mode)
- *   onSave        – async (formData) => void  — called when form is submitted
- *   onCancel      – () => void
- *   saving        – boolean: disable submit while API call is in progress
- *   showDefault   – boolean: show "Set as default" checkbox (default true)
- *   submitLabel   – string: button label (default 'Save Address')
- */
-import { useState } from "react";
+import { useState, useEffect, memo } from "react";
 import { INDIAN_STATES } from "../../constants/constants_index";
 import Loader from "../common/Loader";
 
@@ -25,6 +14,18 @@ const BLANK = {
   isDefault: false,
 };
 
+/* 🔥 Move Field outside (prevents recreation every render) */
+const Field = ({ label, name, required, children, error, colSpan }) => (
+  <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
+    <label className="block font-body text-sm font-bold text-earth-700 mb-1">
+      {label}
+      {required && <span className="text-spice-500 ml-0.5">*</span>}
+    </label>
+    {children}
+    {error && <p className="text-spice-600 text-xs mt-1 font-body">{error}</p>}
+  </div>
+);
+
 const AddressForm = ({
   initial = BLANK,
   onSave,
@@ -33,11 +34,18 @@ const AddressForm = ({
   showDefault = true,
   submitLabel = "Save Address",
 }) => {
-  const [form, setForm] = useState({ ...BLANK, ...initial });
+  /* ✅ Lazy init (VERY IMPORTANT FIX) */
+  const [form, setForm] = useState(() => ({ ...BLANK, ...initial }));
   const [errors, setErrors] = useState({});
+
+  /* ✅ Sync only when initial changes (edit mode support) */
+  useEffect(() => {
+    setForm({ ...BLANK, ...initial });
+  }, [initial]);
 
   const validate = () => {
     const errs = {};
+
     if (!form.fullName.trim()) errs.fullName = "Required";
     if (!/^[6-9]\d{9}$/.test(form.phone))
       errs.phone = "Enter a valid 10-digit mobile";
@@ -46,33 +54,28 @@ const AddressForm = ({
     if (!form.state) errs.state = "Required";
     if (!/^\d{6}$/.test(form.pincode))
       errs.pincode = "Enter a valid 6-digit pincode";
+
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value }));
-    setErrors((p) => ({ ...p, [name]: "" }));
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   const handleSubmit = () => {
     if (!validate()) return;
     onSave(form);
   };
-
-  const Field = ({ label, name, required, children, colSpan }) => (
-    <div className={colSpan === 2 ? "sm:col-span-2" : ""}>
-      <label className="block font-body text-sm font-bold text-earth-700 mb-1">
-        {label}
-        {required && <span className="text-spice-500 ml-0.5">*</span>}
-      </label>
-      {children}
-      {errors[name] && (
-        <p className="text-spice-600 text-xs mt-1 font-body">{errors[name]}</p>
-      )}
-    </div>
-  );
 
   return (
     <div className="grid gap-3 sm:grid-cols-2">
@@ -91,7 +94,7 @@ const AddressForm = ({
       </div>
 
       {/* Full Name */}
-      <Field label="Full Name" name="fullName" required>
+      <Field label="Full Name" name="fullName" required error={errors.fullName}>
         <input
           name="fullName"
           value={form.fullName}
@@ -102,7 +105,7 @@ const AddressForm = ({
       </Field>
 
       {/* Phone */}
-      <Field label="Mobile Number" name="phone" required>
+      <Field label="Mobile Number" name="phone" required error={errors.phone}>
         <input
           name="phone"
           value={form.phone}
@@ -114,7 +117,13 @@ const AddressForm = ({
       </Field>
 
       {/* Address Line 1 */}
-      <Field label="Address Line 1" name="addressLine1" required colSpan={2}>
+      <Field
+        label="Address Line 1"
+        name="addressLine1"
+        required
+        error={errors.addressLine1}
+        colSpan={2}
+      >
         <input
           name="addressLine1"
           value={form.addressLine1}
@@ -140,7 +149,7 @@ const AddressForm = ({
       </div>
 
       {/* City */}
-      <Field label="City" name="city" required>
+      <Field label="City" name="city" required error={errors.city}>
         <input
           name="city"
           value={form.city}
@@ -151,7 +160,7 @@ const AddressForm = ({
       </Field>
 
       {/* Pincode */}
-      <Field label="Pincode" name="pincode" required>
+      <Field label="Pincode" name="pincode" required error={errors.pincode}>
         <input
           name="pincode"
           value={form.pincode}
@@ -163,7 +172,7 @@ const AddressForm = ({
       </Field>
 
       {/* State */}
-      <Field label="State" name="state" required>
+      <Field label="State" name="state" required error={errors.state}>
         <div className="relative">
           <select
             name="state"
@@ -184,7 +193,7 @@ const AddressForm = ({
         </div>
       </Field>
 
-      {/* Set as default */}
+      {/* Default */}
       {showDefault && (
         <div className="sm:col-span-2 flex items-center gap-2 mt-1">
           <input
@@ -216,6 +225,7 @@ const AddressForm = ({
             Cancel
           </button>
         )}
+
         <button
           type="button"
           onClick={handleSubmit}
@@ -235,4 +245,5 @@ const AddressForm = ({
   );
 };
 
-export default AddressForm;
+/* ✅ Prevent unnecessary re-renders */
+export default memo(AddressForm);
