@@ -7,7 +7,8 @@ import { InlineLoader } from "../components/common/Loader";
 import { formatPrice } from "../utils";
 import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
 
-const SHIPPING_THRESHOLD = 999;
+const FREE_DELIVERY_THRESHOLD = 999;
+const DELIVERY_FEE = 49;
 
 const CartPage = () => {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ const CartPage = () => {
   const navigate = useNavigate();
 
   const items = cart?.items ?? [];
-  const shipping = cartTotal >= SHIPPING_THRESHOLD ? 0 : 60;
+  const shipping = cartTotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
   const total = cartTotal + shipping;
 
   if (!user) {
@@ -126,24 +127,24 @@ const CartPage = () => {
               </div>
 
               {/* Free shipping progress */}
-              {cartTotal < SHIPPING_THRESHOLD && (
+              {cartTotal < FREE_DELIVERY_THRESHOLD && (
                 <div className="mb-5 p-3 bg-brand-50 rounded-xl border border-brand-100">
                   <p className="font-body text-xs text-brand-700 mb-2">
-                    Add {formatPrice(SHIPPING_THRESHOLD - cartTotal)} more for
+                    Add {formatPrice(FREE_DELIVERY_THRESHOLD - cartTotal)} more for
                     free shipping!
                   </p>
                   <div className="h-1.5 bg-brand-100 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-brand-500 rounded-full transition-all duration-500"
                       style={{
-                        width: `${Math.min(100, (cartTotal / SHIPPING_THRESHOLD) * 100)}%`,
+                        width: `${Math.min(100, (cartTotal / FREE_DELIVERY_THRESHOLD) * 100)}%`,
                       }}
                     />
                   </div>
                 </div>
               )}
 
-              {cartTotal >= SHIPPING_THRESHOLD && (
+              {cartTotal >= FREE_DELIVERY_THRESHOLD && (
                 <div className="mb-5 p-3 bg-leaf-50 rounded-xl border border-leaf-100">
                   <p className="font-body text-xs text-leaf-700 font-bold">
                     🎉 You qualify for free shipping!

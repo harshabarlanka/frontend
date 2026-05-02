@@ -225,12 +225,6 @@ const OrderDetailPage = () => {
                                   key={i}
                                   className="flex gap-3 text-xs font-body"
                                 >
-                                  {/*
-                                  FIX Bug 12: Original used act.date which was always
-                                  undefined because Shiprocket returns the key as "SR Date".
-                                  The service now normalises it to act.date (see shiprocket.service.js).
-                                  We also guard with a fallback to avoid "Invalid Date".
-                                */}
                                   <span className="text-earth-400 flex-shrink-0 whitespace-nowrap">
                                     {act.date ? formatDateTime(act.date) : "—"}
                                   </span>
@@ -363,36 +357,22 @@ const OrderDetailPage = () => {
                       : formatPrice(order.shippingCharge)}
                   </span>
                 </div>
-                <div className="flex justify-between text-earth-700">
-                  <span>GST</span>
-                  <span>{formatPrice(order.tax)}</span>
-                </div>
-                {/* COD fee row — only for Partial COD orders */}
-                {order.paymentMode === "COD_PARTIAL" && order.codFee > 0 && (
-                  <div className="flex justify-between text-amber-700">
-                    <span>COD Handling Fee</span>
-                    <span className="font-bold">
-                      +{formatPrice(order.codFee)}
-                    </span>
+                {order.tax > 0 && (
+                  <div className="flex justify-between text-earth-700">
+                    <span>GST</span>
+                    <span>{formatPrice(order.tax)}</span>
+                  </div>
+                )}
+                {order.discountAmount > 0 && (
+                  <div className="flex justify-between text-leaf-700 font-bold">
+                    <span>🎟️ Discount</span>
+                    <span>−{formatPrice(order.discountAmount)}</span>
                   </div>
                 )}
                 <div className="pt-3 border-t border-earth-100 flex justify-between font-display font-bold text-earth-900 text-base">
                   <span>Total</span>
                   <span>{formatPrice(order.total)}</span>
                 </div>
-                {/* Partial COD split summary */}
-                {order.paymentMode === "COD_PARTIAL" && (
-                  <div className="pt-2 border-t border-amber-100 space-y-1.5">
-                    <div className="flex justify-between text-brand-700 font-bold text-xs">
-                      <span>✅ Paid Online</span>
-                      <span>{formatPrice(order.advancePaidAmount)}</span>
-                    </div>
-                    <div className="flex justify-between text-amber-700 font-bold text-xs">
-                      <span>💵 Pay on Delivery</span>
-                      <span>{formatPrice(order.codRemainingAmount)}</span>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -403,20 +383,14 @@ const OrderDetailPage = () => {
               </h3>
               <div className="font-body text-sm space-y-1">
                 <p className="text-earth-700">
-                  <span className="font-bold">Method:</span>{" "}
-                  {order.paymentMode === "COD_PARTIAL"
-                    ? "Cash on Delivery (Partial)"
-                    : order.paymentMethod === "cod"
-                      ? "Cash on Delivery"
-                      : "Online Payment"}
+                  <span className="font-bold">Method:</span> Online Payment
+                  (Razorpay)
                 </p>
                 {order.paymentId?.status && (
                   <p className="text-earth-700">
                     <span className="font-bold">Status:</span>{" "}
                     <span className="capitalize">
-                      {order.paymentId.status === "partial_paid"
-                        ? "Advance Paid (COD balance pending)"
-                        : order.paymentId.status.replace(/_/g, " ")}
+                      {order.paymentId.status.replace(/_/g, " ")}
                     </span>
                   </p>
                 )}
@@ -424,19 +398,6 @@ const OrderDetailPage = () => {
                   <p className="text-earth-500 text-xs break-all">
                     ID: {order.paymentId.razorpayPaymentId}
                   </p>
-                )}
-                {/* COD split details on order page */}
-                {order.paymentMode === "COD_PARTIAL" && (
-                  <div className="mt-3 pt-3 border-t border-amber-100 space-y-1.5">
-                    <div className="flex justify-between text-brand-700 text-xs font-bold">
-                      <span>✅ Paid Online</span>
-                      <span>{formatPrice(order.advancePaidAmount)}</span>
-                    </div>
-                    <div className="flex justify-between text-amber-700 text-xs font-bold">
-                      <span>💵 Pay on Delivery</span>
-                      <span>{formatPrice(order.codRemainingAmount)}</span>
-                    </div>
-                  </div>
                 )}
               </div>
             </div>

@@ -17,9 +17,12 @@ import toast from "react-hot-toast";
 const STEPS = ["Address", "Payment", "Review"];
 const MAX_ADDRESSES = 5;
 
-// ── Partial COD Constants ──────────────────────────────────────────────────────
-const COD_FEE = 50; // ₹50 COD handling fee charged by Shiprocket
-const COD_ADVANCE_PCT = 0.2; // 20% advance paid online
+// ── Delivery charge constants (mirrors backend logic) ─────────────────────────
+const FREE_DELIVERY_THRESHOLD = 999;
+const DELIVERY_FEE = 49;
+
+const calcDelivery = (subtotal) =>
+  subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DELIVERY_FEE;
 
 const toShippingPayload = (addr) => ({
   fullName: addr.fullName,
@@ -31,57 +34,6 @@ const toShippingPayload = (addr) => ({
   pincode: addr.pincode,
   country: addr.country || "India",
 });
-
-// ── Tooltip explaining split payment ─────────────────────────────────────────
-const CodTooltip = () => (
-  <span className="group relative inline-block ml-1 cursor-help align-middle">
-    <span className="text-xs bg-amber-200 text-amber-700 rounded-full w-4 h-4 inline-flex items-center justify-center font-bold">
-      ?
-    </span>
-    <span className="pointer-events-none absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-2 w-60 bg-earth-900 text-white text-xs rounded-xl p-3 opacity-0 group-hover:opacity-100 transition-opacity shadow-xl leading-relaxed">
-      Pay 20% online via Razorpay to confirm your order. Pay the remaining 80%
-      in cash when your order is delivered.
-    </span>
-  </span>
-);
-
-// ── COD Breakdown Panel (shown when COD_PARTIAL selected) ─────────────────────
-const CodBreakdown = ({ baseTotal }) => {
-  // Display-only estimate; backend always recalculates authoritatively
-  const grandTotal = baseTotal + COD_FEE;
-  const advance = Math.round(grandTotal * COD_ADVANCE_PCT);
-  const remaining = grandTotal - advance;
-  return (
-    <div className="mt-3 p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-2 text-sm">
-      <div className="flex justify-between">
-        <span>Order Total</span>
-        <span className="font-semibold">{formatPrice(baseTotal)}</span>
-      </div>
-
-      <div className="flex justify-between text-amber-700">
-        <span>COD Fee</span>
-        <span className="font-semibold">+{formatPrice(COD_FEE)}</span>
-      </div>
-
-      <div className="border-t pt-2 flex justify-between font-bold">
-        <span>Total</span>
-        <span>{formatPrice(grandTotal)}</span>
-      </div>
-
-      <div className="border-t pt-2 text-xs space-y-1">
-        <div className="flex justify-between text-brand-700 font-semibold">
-          <span>Pay Now</span>
-          <span>{formatPrice(advance)}</span>
-        </div>
-
-        <div className="flex justify-between text-earth-600">
-          <span>Pay Later</span>
-          <span>{formatPrice(remaining)}</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
 // ─────────────────────────────────────────────────────────────────────────────
 const CheckoutPage = () => {
@@ -103,27 +55,15 @@ const CheckoutPage = () => {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
 
-  // ── Payment mode: 'ONLINE' (default) | 'COD_PARTIAL' ──────────────────────
-  const [paymentMode, setPaymentMode] = useState("ONLINE");
-
   const [shippingCost, setShippingCost] = useState(null);
-  const [shippingLoading, setShippingLoading] = useState(false);
 
   const items = cart?.items ?? [];
   const subtotal = cartTotal;
   const discountAmount = appliedCoupon?.discountAmount || 0;
-  const resolvedShipping = 60;
 
-  // Display-only totals — backend recalculates everything securely
-  const baseTotal = Math.max(1, subtotal + resolvedShipping - discountAmount);
-  const codFeeDisplay = paymentMode === "COD_PARTIAL" ? COD_FEE : 0;
-  const grandTotal = baseTotal + codFeeDisplay;
-  const advanceDisplay =
-    paymentMode === "COD_PARTIAL"
-      ? Math.round(grandTotal * COD_ADVANCE_PCT)
-      : baseTotal;
-  const remainingDisplay =
-    paymentMode === "COD_PARTIAL" ? grandTotal - advanceDisplay : 0;
+  // Display-only shipping (backend recalculates authoritatively)
+  const resolvedShipping = shippingCost !== null ? shippingCost : calcDelivery(subtotal);
+  const grandTotal = Math.max(1, subtotal + resolvedShipping - discountAmount);
 
   const selectedAddress =
     addresses.find((a) => a._id === selectedAddressId) || null;
@@ -152,10 +92,6 @@ const CheckoutPage = () => {
   useEffect(() => {
     fetchAddresses();
   }, [fetchAddresses]);
-
-  useEffect(() => {
-    setShippingCost(60);
-  }, []);
 
   const handleAddAddress = async (formData) => {
     setSavingAddress(true);
@@ -212,32 +148,26 @@ const CheckoutPage = () => {
   };
 
   // ── Razorpay modal ────────────────────────────────────────────────────────────
-  // For COD_PARTIAL: Razorpay opens ONLY for the advance amount.
-  // The backend already sets razorpay.amount to the advance for COD_PARTIAL.
   const handleRazorpayPayment = (orderData) =>
     new Promise((resolve, reject) => {
       if (!window.Razorpay) {
         reject(new Error("Razorpay SDK not loaded. Please refresh the page."));
         return;
       }
-      const isCod = orderData.order?.paymentMode === "COD_PARTIAL";
       const options = {
         key: RAZORPAY_KEY_ID,
-        // razorpay.amount is advance for COD_PARTIAL, full total for ONLINE
         amount: orderData.razorpay.amount,
         currency: orderData.razorpay.currency,
         order_id: orderData.razorpay.orderId,
         name: "Naidu Gari Ruchulu",
-        description: isCod
-          ? `Advance (20%) — Order ${orderData.order.orderNumber}`
-          : `Order ${orderData.order.orderNumber}`,
+        description: `Order ${orderData.order.orderNumber}`,
         image: "/favicon.svg",
         prefill: {
           name: user.name,
           email: user.email,
           contact: user.phone || "",
         },
-        theme: { color: isCod ? "#d97706" : "#cc6d09" },
+        theme: { color: "#cc6d09" },
         handler: async (response) => {
           try {
             const { data: verifyData } = await verifyPaymentAPI({
@@ -267,11 +197,9 @@ const CheckoutPage = () => {
     }
     try {
       setPlacing(true);
-      // Send paymentMode to backend; backend recalculates all amounts securely
       const { data } = await placeOrderAPI({
         shippingAddress: toShippingPayload(selectedAddress),
         paymentMethod: "razorpay",
-        paymentMode, // 'ONLINE' | 'COD_PARTIAL'
         couponCode: appliedCoupon?.code || undefined,
       });
       const orderData = data.data;
@@ -280,12 +208,7 @@ const CheckoutPage = () => {
       }
       const confirmedOrder = await handleRazorpayPayment(orderData);
       await clearCart();
-      const isCod = orderData.order?.paymentMode === "COD_PARTIAL";
-      toast.success(
-        isCod
-          ? `Advance paid! Pay ₹${orderData.order.codRemainingAmount} cash on delivery. 🎉`
-          : "Order placed successfully! 🎉",
-      );
+      toast.success("Order placed successfully! 🎉");
       navigate(`/orders/${confirmedOrder._id}`, { replace: true });
     } catch (err) {
       const msg = getErrorMessage(err);
@@ -445,30 +368,18 @@ const CheckoutPage = () => {
                   Payment Method
                 </h2>
 
-                {/* Option A: Pay Online (Razorpay) */}
-                <label
-                  className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    paymentMode === "ONLINE"
-                      ? "border-brand-500 bg-brand-50"
-                      : "border-earth-200 bg-white hover:border-earth-300 hover:bg-earth-50"
-                  }`}
-                  onClick={() => setPaymentMode("ONLINE")}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="ONLINE"
-                    checked={paymentMode === "ONLINE"}
-                    onChange={() => setPaymentMode("ONLINE")}
-                    className="mt-1 accent-brand-600"
-                  />
+                {/* Online Payment — only option */}
+                <div className="flex items-start gap-4 p-4 rounded-xl border-2 border-brand-500 bg-brand-50">
+                  <div className="w-5 h-5 rounded-full bg-brand-600 flex items-center justify-center mt-0.5 flex-shrink-0">
+                    <div className="w-2 h-2 rounded-full bg-white" />
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-body font-bold text-earth-900">
                         Pay Online
                       </span>
                       <span className="badge bg-leaf-100 text-leaf-800 text-xs">
-                        Recommended
+                        Secure & Instant
                       </span>
                     </div>
                     <p className="font-body text-sm text-earth-500">
@@ -482,48 +393,13 @@ const CheckoutPage = () => {
                       ))}
                     </div>
                   </div>
-                </label>
+                </div>
 
-                {/* Option B: Cash on Delivery (Partial) */}
-                <label
-                  className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all mt-3 ${
-                    paymentMode === "COD_PARTIAL"
-                      ? "border-amber-400 bg-amber-50"
-                      : "border-earth-200 bg-white hover:border-amber-200 hover:bg-amber-50/40"
-                  }`}
-                  onClick={() => setPaymentMode("COD_PARTIAL")}
-                >
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="COD_PARTIAL"
-                    checked={paymentMode === "COD_PARTIAL"}
-                    onChange={() => setPaymentMode("COD_PARTIAL")}
-                    className="mt-1 accent-amber-500"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-body font-bold text-earth-900">
-                        Cash on Delivery
-                      </span>
-                      <span className="text-xs text-amber-600 font-semibold">
-                        (20% advance)
-                      </span>
-                    </div>
-
-                    <p className="font-body text-sm text-earth-500">
-                      Pay a small amount now, rest on delivery
-                    </p>
-                    <div className="flex gap-2 mt-2">
-                      <span className="text-lg">💵</span>
-                      <span className="text-lg">🏠</span>
-                    </div>
-                    {/* Breakdown — visible only when this option is selected */}
-                    {paymentMode === "COD_PARTIAL" && (
-                      <CodBreakdown baseTotal={baseTotal} />
-                    )}
-                  </div>
-                </label>
+                <p className="font-body text-xs text-earth-400 mt-3 flex items-center gap-1.5">
+                  <span>🔒</span>
+                  All payments are processed securely via Razorpay. Your order
+                  is confirmed only after successful payment.
+                </p>
 
                 {/* Coupon */}
                 <div className="mt-6 pt-6 border-t border-earth-100">
@@ -640,31 +516,9 @@ const CheckoutPage = () => {
                       <h3 className="font-display font-bold text-earth-900 mb-1">
                         Payment
                       </h3>
-                      {paymentMode === "COD_PARTIAL" ? (
-                        <>
-                          <p className="font-body text-sm text-amber-700 font-bold">
-                            Cash on Delivery (20% paid)
-                          </p>
-                          <div className="mt-2 space-y-1 text-xs font-body">
-                            <div className="flex justify-between text-earth-600">
-                              <span>Paid Online (20%):</span>
-                              <span className="font-bold text-brand-700">
-                                {formatPrice(advanceDisplay)}
-                              </span>
-                            </div>
-                            <div className="flex justify-between text-earth-600">
-                              <span>Pay on Delivery (80%):</span>
-                              <span className="font-bold text-amber-700">
-                                {formatPrice(remainingDisplay)}
-                              </span>
-                            </div>
-                          </div>
-                        </>
-                      ) : (
-                        <p className="font-body text-sm text-earth-600">
-                          💳 Online Payment (Razorpay)
-                        </p>
-                      )}
+                      <p className="font-body text-sm text-earth-600">
+                        💳 Online Payment (Razorpay)
+                      </p>
                       {appliedCoupon && (
                         <p className="font-body text-sm text-leaf-700 mt-1">
                           🎟️ {appliedCoupon.code} (−
@@ -716,29 +570,21 @@ const CheckoutPage = () => {
                   </div>
                 </div>
 
-                {/* COD note */}
-
                 <div className="flex gap-3">
                   <button onClick={() => setStep(1)} className="btn-secondary">
                     ← Back
                   </button>
                   <button
                     onClick={handlePlaceOrder}
-                    disabled={placing || shippingLoading || !selectedAddress}
-                    className={`flex-1 py-3.5 text-base disabled:opacity-60 rounded-xl font-bold font-body transition-all shadow-sm ${
-                      paymentMode === "COD_PARTIAL"
-                        ? "bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white"
-                        : "btn-primary"
-                    }`}
+                    disabled={placing || !selectedAddress}
+                    className="btn-primary flex-1 py-3.5 text-base disabled:opacity-60"
                   >
                     {placing ? (
                       <span className="flex items-center justify-center gap-2">
                         <Loader size="sm" /> Opening payment…
                       </span>
-                    ) : paymentMode === "COD_PARTIAL" ? (
-                      `Pay ${formatPrice(advanceDisplay)} Now`
                     ) : (
-                      "💳 Pay " + formatPrice(baseTotal)
+                      "💳 Pay " + formatPrice(grandTotal)
                     )}
                   </button>
                 </div>
@@ -758,37 +604,21 @@ const CheckoutPage = () => {
                   <span>{formatPrice(subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-earth-700">
-                  <span>
-                    Shipping
-                    {shippingLoading && (
-                      <span className="ml-1 text-earth-400 text-xs">
-                        (checking…)
-                      </span>
-                    )}
-                  </span>
+                  <span>Shipping</span>
                   <span
                     className={
                       resolvedShipping === 0 ? "text-leaf-700 font-bold" : ""
                     }
                   >
-                    {shippingLoading
-                      ? "—"
-                      : resolvedShipping === 0
-                        ? "FREE"
-                        : formatPrice(resolvedShipping)}
+                    {resolvedShipping === 0
+                      ? "FREE"
+                      : formatPrice(resolvedShipping)}
                   </span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-leaf-700 font-bold">
                     <span>🎟️ Discount</span>
                     <span>−{formatPrice(discountAmount)}</span>
-                  </div>
-                )}
-                {/* COD fee — only shown when COD_PARTIAL selected */}
-                {paymentMode === "COD_PARTIAL" && (
-                  <div className="flex justify-between text-amber-700">
-                    <span>COD Fee</span>
-                    <span className="font-bold">+{formatPrice(COD_FEE)}</span>
                   </div>
                 )}
                 <div className="pt-3 border-t border-earth-100">
@@ -804,20 +634,32 @@ const CheckoutPage = () => {
                     Inclusive of all taxes • No hidden charges
                   </p>
                 </div>
-                {/* COD split in sidebar */}
-                {paymentMode === "COD_PARTIAL" && (
-                  <div className="pt-2 border-t border-amber-100 space-y-1.5">
-                    <div className="flex justify-between text-brand-700 font-bold text-xs">
-                      <span>⚡ Pay Now (Online)</span>
-                      <span>{formatPrice(advanceDisplay)}</span>
-                    </div>
-                    <div className="flex justify-between text-amber-600 text-xs">
-                      <span>💵 Pay on Delivery</span>
-                      <span>{formatPrice(remainingDisplay)}</span>
-                    </div>
-                  </div>
-                )}
               </div>
+
+              {subtotal < FREE_DELIVERY_THRESHOLD && (
+                <div className="mt-4 p-3 bg-brand-50 rounded-xl border border-brand-100">
+                  <p className="font-body text-xs text-brand-700 mb-2">
+                    Add {formatPrice(FREE_DELIVERY_THRESHOLD - subtotal)} more
+                    for free shipping!
+                  </p>
+                  <div className="h-1.5 bg-brand-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-brand-500 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${Math.min(100, (subtotal / FREE_DELIVERY_THRESHOLD) * 100)}%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {subtotal >= FREE_DELIVERY_THRESHOLD && (
+                <div className="mt-4 p-3 bg-leaf-50 rounded-xl border border-leaf-100">
+                  <p className="font-body text-xs text-leaf-700 font-bold">
+                    🎉 You qualify for free shipping!
+                  </p>
+                </div>
+              )}
 
               {appliedCoupon && (
                 <div className="mt-4 p-2 rounded-lg bg-leaf-50 border border-leaf-200">
