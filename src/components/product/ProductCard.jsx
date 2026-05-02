@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import StarRating from "../common/StarRating";
 import { getErrorMessage } from "../../utils";
 import toast from "react-hot-toast";
-
+import { transformImage } from "../../utils/imageTransform";
 const ProductCard = ({ product }) => {
   const { user } = useAuth();
   const { addToCart } = useCart();
@@ -57,7 +57,7 @@ const ProductCard = ({ product }) => {
 
         {product.images?.[0] ? (
           <img
-            src={product.images[0]}
+            src={transformImage(product.images[0])}
             alt={product.name}
             onLoad={() => setImgLoaded(true)}
             className={`aspect-[1.02] w-full object-cover transition-all duration-700 ${

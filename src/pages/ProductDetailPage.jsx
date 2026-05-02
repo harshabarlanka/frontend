@@ -10,6 +10,7 @@ import ErrorState from "../components/common/ErrorState";
 import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import toast from "react-hot-toast";
 import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
+import { transformImage } from "../utils/imageTransform";
 
 const ProductDetailPage = () => {
   const { slug } = useParams();
@@ -44,7 +45,9 @@ const ProductDetailPage = () => {
       }
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   if (loading) return <PageLoader />;
@@ -59,7 +62,10 @@ const ProductDetailPage = () => {
   const inStock = variant?.stock > 0;
 
   const handleAddToCart = async () => {
-    if (!user) { navigate("/login"); return; }
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     try {
       setAdding(true);
       await addToCart(product._id, variant._id, qty);
@@ -71,7 +77,10 @@ const ProductDetailPage = () => {
   };
 
   const handleBuyNow = async () => {
-    if (!user) { navigate("/login"); return; }
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     try {
       setAdding(true);
       await addToCart(product._id, variant._id, qty);
@@ -85,11 +94,20 @@ const ProductDetailPage = () => {
 
   const handleReviewSubmit = async (e) => {
     e.preventDefault();
-    if (!user) { navigate("/login"); return; }
-    if (reviewRating === 0) { toast.error("Please select a rating."); return; }
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    if (reviewRating === 0) {
+      toast.error("Please select a rating.");
+      return;
+    }
     try {
       setSubmitting(true);
-      await addReviewAPI(product._id, { rating: reviewRating, comment: reviewText });
+      await addReviewAPI(product._id, {
+        rating: reviewRating,
+        comment: reviewText,
+      });
       toast.success("Review submitted!");
       setReviewRating(0);
       setReviewText("");
@@ -111,9 +129,16 @@ const ProductDetailPage = () => {
       <div className="page-container">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-xs font-body text-earth-400 mb-8">
-          <Link to="/" className="hover:text-brand-600 transition-colors">Home</Link>
+          <Link to="/" className="hover:text-brand-600 transition-colors">
+            Home
+          </Link>
           <span>/</span>
-          <Link to="/products/all" className="hover:text-brand-600 transition-colors">Shop</Link>
+          <Link
+            to="/products/all"
+            className="hover:text-brand-600 transition-colors"
+          >
+            Shop
+          </Link>
           <span>/</span>
           <Link
             to={`/products/${product.category}`}
@@ -122,7 +147,9 @@ const ProductDetailPage = () => {
             {product.category}
           </Link>
           <span>/</span>
-          <span className="text-earth-700 truncate max-w-[160px]">{product.name}</span>
+          <span className="text-earth-700 truncate max-w-[160px]">
+            {product.name}
+          </span>
         </nav>
 
         <div className="grid lg:grid-cols-2 gap-12 mb-16">
@@ -131,12 +158,14 @@ const ProductDetailPage = () => {
             <div className="aspect-square rounded-2xl overflow-hidden bg-earth-100 border border-earth-100">
               {images[selectedImg] ? (
                 <img
-                  src={images[selectedImg]}
+                  src={transformImage(images[selectedImg])}
                   alt={product.name}
                   className="w-full h-full object-cover transition-all duration-300"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-8xl">🫙</div>
+                <div className="w-full h-full flex items-center justify-center text-8xl">
+                  🫙
+                </div>
               )}
             </div>
             {images.length > 1 && (
@@ -146,13 +175,21 @@ const ProductDetailPage = () => {
                     key={idx}
                     onClick={() => setSelectedImg(idx)}
                     className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImg === idx ? "border-brand-500" : "border-transparent hover:border-earth-300"
+                      selectedImg === idx
+                        ? "border-brand-500"
+                        : "border-transparent hover:border-earth-300"
                     }`}
                   >
                     {img ? (
-                      <img src={img} alt="" className="w-full h-full object-cover" />
+                      <img
+                        src={transformImage(img)}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <div className="w-full h-full bg-earth-100 flex items-center justify-center text-xl">🫙</div>
+                      <div className="w-full h-full bg-earth-100 flex items-center justify-center text-xl">
+                        🫙
+                      </div>
                     )}
                   </button>
                 ))}
@@ -164,7 +201,9 @@ const ProductDetailPage = () => {
           <div className="space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="brand" className="capitalize">{product.category}</Badge>
+                <Badge variant="brand" className="capitalize">
+                  {product.category}
+                </Badge>
               </div>
               <h1 className="font-display font-bold text-3xl text-earth-900 leading-tight">
                 {product.name}
@@ -199,7 +238,10 @@ const ProductDetailPage = () => {
               )}
               {variant?.mrp > variant?.price && (
                 <span className="text-sm font-semibold text-green-600">
-                  {Math.round(((variant.mrp - variant.price) / variant.mrp) * 100)}% off
+                  {Math.round(
+                    ((variant.mrp - variant.price) / variant.mrp) * 100,
+                  )}
+                  % off
                 </span>
               )}
             </div>
@@ -214,14 +256,17 @@ const ProductDetailPage = () => {
                   {product.variants.map((v, idx) => (
                     <button
                       key={v._id}
-                      onClick={() => { setSelectedVariant(idx); setQty(1); }}
+                      onClick={() => {
+                        setSelectedVariant(idx);
+                        setQty(1);
+                      }}
                       disabled={v.stock === 0}
                       className={`px-4 py-2 rounded-xl border-2 font-body font-bold text-sm transition-all duration-150 ${
                         selectedVariant === idx
                           ? "border-brand-600 bg-brand-600 text-white"
                           : v.stock === 0
-                          ? "border-earth-100 text-earth-300 line-through cursor-not-allowed bg-earth-50"
-                          : "border-earth-200 text-earth-700 hover:border-brand-400 bg-white"
+                            ? "border-earth-100 text-earth-300 line-through cursor-not-allowed bg-earth-50"
+                            : "border-earth-200 text-earth-700 hover:border-brand-400 bg-white"
                       }`}
                     >
                       {v.size}
@@ -230,14 +275,18 @@ const ProductDetailPage = () => {
                   ))}
                 </div>
                 {variant && (
-                  <p className={`font-body text-xs mt-2 ${
-                    variant.stock <= 5 && variant.stock > 0 ? "text-spice-600 font-bold" : "text-earth-400"
-                  }`}>
+                  <p
+                    className={`font-body text-xs mt-2 ${
+                      variant.stock <= 5 && variant.stock > 0
+                        ? "text-spice-600 font-bold"
+                        : "text-earth-400"
+                    }`}
+                  >
                     {variant.stock === 0
                       ? "Out of stock"
                       : variant.stock <= 5
-                      ? `Only ${variant.stock} left!`
-                      : `${variant.stock} in stock`}
+                        ? `Only ${variant.stock} left!`
+                        : `${variant.stock} in stock`}
                   </p>
                 )}
               </div>
@@ -261,7 +310,9 @@ const ProductDetailPage = () => {
                     {qty}
                   </span>
                   <button
-                    onClick={() => setQty((q) => Math.min(variant?.stock ?? 20, q + 1))}
+                    onClick={() =>
+                      setQty((q) => Math.min(variant?.stock ?? 20, q + 1))
+                    }
                     disabled={qty >= (variant?.stock ?? 20)}
                     className="w-11 h-11 flex items-center justify-center text-earth-600 hover:bg-earth-50 transition-colors disabled:opacity-40 font-body font-bold text-lg"
                   >
@@ -281,7 +332,11 @@ const ProductDetailPage = () => {
                 disabled={adding || !inStock}
                 className="flex-1 btn-secondary py-3.5 text-base font-bold disabled:opacity-50"
               >
-                {adding ? "Adding…" : !inStock ? "Out of Stock" : "🛒 Add to Cart"}
+                {adding
+                  ? "Adding…"
+                  : !inStock
+                    ? "Out of Stock"
+                    : "🛒 Add to Cart"}
               </button>
               <button
                 onClick={handleBuyNow}
@@ -296,12 +351,20 @@ const ProductDetailPage = () => {
             <div className="grid grid-cols-3 gap-3 pt-2">
               {[
                 { icon: "🚚", text: "Free shipping over ₹999" },
-                { icon: "↩️", text: "7-days hassle-free returns on damaged items" },
+                {
+                  icon: "↩️",
+                  text: "7-days hassle-free returns on damaged items",
+                },
                 { icon: "🌿", text: "No preservatives" },
               ].map(({ icon, text }) => (
-                <div key={text} className="flex flex-col items-center text-center p-3 bg-earth-50 rounded-xl">
+                <div
+                  key={text}
+                  className="flex flex-col items-center text-center p-3 bg-earth-50 rounded-xl"
+                >
                   <span className="text-xl mb-1">{icon}</span>
-                  <span className="font-body text-xs text-earth-600 leading-tight">{text}</span>
+                  <span className="font-body text-xs text-earth-600 leading-tight">
+                    {text}
+                  </span>
                 </div>
               ))}
             </div>
@@ -314,7 +377,10 @@ const ProductDetailPage = () => {
             {[
               { key: "description", label: "Description" },
               { key: "ingredients", label: "Ingredients" },
-              { key: "reviews", label: `Reviews (${product.reviews?.length ?? 0})` },
+              {
+                key: "reviews",
+                label: `Reviews (${product.reviews?.length ?? 0})`,
+              },
             ].map((tab) => (
               <button
                 key={tab.key}
@@ -340,7 +406,10 @@ const ProductDetailPage = () => {
                 {product.tags?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-6">
                     {product.tags.map((tag) => (
-                      <span key={tag} className="badge bg-earth-100 text-earth-600">
+                      <span
+                        key={tag}
+                        className="badge bg-earth-100 text-earth-600"
+                      >
                         #{tag}
                       </span>
                     ))}
@@ -353,7 +422,9 @@ const ProductDetailPage = () => {
             {activeTab === "ingredients" && (
               <div className="animate-fade-in">
                 {product.ingredients ? (
-                  <p className="font-body text-earth-700 leading-relaxed">{product.ingredients}</p>
+                  <p className="font-body text-earth-700 leading-relaxed">
+                    {product.ingredients}
+                  </p>
                 ) : (
                   <p className="font-body text-earth-400 italic">
                     Ingredients not listed. Please contact us for details.
@@ -369,8 +440,14 @@ const ProductDetailPage = () => {
                 {reviewCount > 0 && (
                   <div className="flex items-center gap-5 p-5 bg-earth-50 rounded-2xl">
                     <div className="text-center">
-                      <p className="text-5xl font-bold text-earth-900">{avgRating.toFixed(1)}</p>
-                      <StarRating rating={avgRating} size="md" className="justify-center mt-1" />
+                      <p className="text-5xl font-bold text-earth-900">
+                        {avgRating.toFixed(1)}
+                      </p>
+                      <StarRating
+                        rating={avgRating}
+                        size="md"
+                        className="justify-center mt-1"
+                      />
                       <p className="text-sm text-earth-500 mt-1">out of 5</p>
                     </div>
                     <div className="flex-1 text-sm text-earth-500">
@@ -415,8 +492,12 @@ const ProductDetailPage = () => {
                   </div>
                 ) : (
                   <div className="text-center py-8 bg-earth-50 rounded-xl">
-                    <p className="font-body text-earth-600 mb-3">Sign in to leave a review</p>
-                    <Link to="/login" className="btn-primary text-sm">Login</Link>
+                    <p className="font-body text-earth-600 mb-3">
+                      Sign in to leave a review
+                    </p>
+                    <Link to="/login" className="btn-primary text-sm">
+                      Login
+                    </Link>
                   </div>
                 )}
 
@@ -424,7 +505,10 @@ const ProductDetailPage = () => {
                 {product.reviews?.length > 0 ? (
                   <div className="space-y-4">
                     {product.reviews.map((review, idx) => (
-                      <div key={idx} className="border-b border-earth-100 pb-5 last:border-0">
+                      <div
+                        key={idx}
+                        className="border-b border-earth-100 pb-5 last:border-0"
+                      >
                         <div className="flex items-start gap-3">
                           <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center font-body font-bold text-brand-700 text-sm shrink-0">
                             {review.name?.charAt(0).toUpperCase()}
@@ -465,9 +549,7 @@ const ProductDetailPage = () => {
         </div>
 
         {/* You May Also Like */}
-        {product && (
-          <YouMayAlsoLike excludeIds={[product._id]} />
-        )}
+        {product && <YouMayAlsoLike excludeIds={[product._id]} />}
       </div>
     </div>
   );
