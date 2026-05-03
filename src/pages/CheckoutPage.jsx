@@ -13,6 +13,7 @@ import Loader from "../components/common/Loader";
 import AddressCard from "../components/address/AddressCard";
 import AddressForm from "../components/address/AddressForm";
 import toast from "react-hot-toast";
+import { transformImage } from "../utils/imageTransform";
 
 const STEPS = ["Address", "Payment", "Review"];
 const MAX_ADDRESSES = 5;
@@ -62,7 +63,8 @@ const CheckoutPage = () => {
   const discountAmount = appliedCoupon?.discountAmount || 0;
 
   // Display-only shipping (backend recalculates authoritatively)
-  const resolvedShipping = shippingCost !== null ? shippingCost : calcDelivery(subtotal);
+  const resolvedShipping =
+    shippingCost !== null ? shippingCost : calcDelivery(subtotal);
   const grandTotal = Math.max(1, subtotal + resolvedShipping - discountAmount);
 
   const selectedAddress =
@@ -546,7 +548,7 @@ const CheckoutPage = () => {
                         <div className="w-12 h-12 rounded-lg bg-earth-100 flex items-center justify-center text-xl overflow-hidden flex-shrink-0">
                           {item.image ? (
                             <img
-                              src={item.image}
+                              src={transformImage(item.image)}
                               alt={item.name}
                               className="w-full h-full object-cover"
                             />

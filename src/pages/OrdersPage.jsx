@@ -7,6 +7,7 @@ import { InlineLoader } from "../components/common/Loader";
 import EmptyState from "../components/common/EmptyState";
 import ErrorState from "../components/common/ErrorState";
 import toast from "react-hot-toast";
+import { transformImage } from "../utils/imageTransform";
 
 const statusFilters = [
   "all",
@@ -173,7 +174,7 @@ const OrderCard = ({ order }) => {
           >
             {item.image ? (
               <img
-                src={item.image}
+                src={transformImage(item.image)}
                 alt={item.name}
                 className="w-full h-full object-cover"
               />

@@ -20,6 +20,7 @@ import { PageLoader } from "../../components/common/Loader";
 import ErrorState from "../../components/common/ErrorState";
 import Badge from "../../components/common/Badge";
 import toast from "react-hot-toast";
+import { transformImage } from "../../utils/imageTransform";
 
 const STEPS = [
   { key: "confirmed", label: "Order Confirmed", icon: "✅" },
@@ -452,7 +453,7 @@ const AdminOrderDetailPage = () => {
                   <div className="w-16 h-16 rounded-xl bg-earth-100 overflow-hidden flex items-center justify-center text-2xl flex-shrink-0">
                     {item.image ? (
                       <img
-                        src={item.image}
+                        src={transformImage(item.image)}
                         alt={item.name}
                         className="w-full h-full object-cover"
                       />

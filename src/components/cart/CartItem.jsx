@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { formatPrice, getErrorMessage } from "../../utils";
+import { transformImage } from "../../utils/imageTransform";
 import toast from "react-hot-toast";
 
 const CartItem = ({ item }) => {
@@ -28,9 +29,6 @@ const CartItem = ({ item }) => {
     }
   };
 
-  // Resolve the correct product URL.
-  // productId in cart is always a plain ObjectId string (no slug field).
-  // Use /product/id/:id which maps to the backend's GET /api/products/id/:id route.
   const productUrl = `/product/id/${item.productId}`;
 
   return (
@@ -40,7 +38,7 @@ const CartItem = ({ item }) => {
         <div className="w-20 h-20 rounded-xl overflow-hidden bg-earth-50 border border-earth-100">
           {item.image ? (
             <img
-              src={item.image}
+              src={transformImage(item.image)}
               alt={item.name}
               className="w-full h-full object-cover"
             />

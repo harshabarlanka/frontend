@@ -10,6 +10,7 @@ import ErrorState from "../components/common/ErrorState";
 import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import toast from "react-hot-toast";
 import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
+import { transformImage } from "../utils/imageTransform";
 import api from "../api/axios";
 
 // Matches a 24-character hex MongoDB ObjectId
@@ -167,7 +168,7 @@ const ProductDetailPage = () => {
             <div className="aspect-square rounded-2xl overflow-hidden bg-earth-100 border border-earth-100">
               {images[selectedImg] ? (
                 <img
-                  src={images[selectedImg]}
+                  src={transformImage(images[selectedImg])}
                   alt={product.name}
                   className="w-full h-full object-cover transition-all duration-300"
                 />
@@ -191,7 +192,7 @@ const ProductDetailPage = () => {
                   >
                     {img ? (
                       <img
-                        src={img}
+                        src={transformImage(img)}
                         alt=""
                         className="w-full h-full object-cover"
                       />
