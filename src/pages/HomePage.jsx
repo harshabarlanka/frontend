@@ -89,7 +89,9 @@ const HomePage = () => {
       }
     };
     load();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return (
@@ -108,7 +110,7 @@ const HomePage = () => {
         <img
           src={heroBanner}
           alt="Naidu Gari Ruchulu Banner"
-          className="w-full h-[260px] sm:h-[340px] md:h-[440px] lg:h-[600px] xl:h-[670px] object-cover object-[25%_center]"
+          className="w-full h-[260px] sm:h-[340px] md:h-[440px] lg:h-[600px] xl:h-[670px] object-cover object-[15%_center] sm:object-[35%_center] md:object-center"
         />
         <div className="absolute inset-0 bg-black/30 sm:bg-black/40" />
       </section>
@@ -123,7 +125,8 @@ const HomePage = () => {
                   Fresh Batch Ready
                 </p>
                 <h2 className="mt-2 text-xl font-semibold text-earth-950 sm:text-2xl">
-                  Spicy pickles, tasty sweets, and crunchy snacks — all in one place.
+                  Spicy pickles, tasty sweets, and crunchy snacks — all in one
+                  place.
                 </h2>
               </div>
 
@@ -158,19 +161,27 @@ const HomePage = () => {
                 Choose your favourite flavours.
               </h2>
               <p className="mt-3 text-sm leading-7 text-earth-500 sm:text-base">
-                From spicy pickles to traditional sweets — something for every craving.
+                From spicy pickles to traditional sweets — something for every
+                craving.
               </p>
             </div>
 
             <div className="hidden items-center gap-3 sm:flex">
               <button
-                onClick={() => scrollRef.current?.scrollBy({ left: -320, behavior: "smooth" })}
+                onClick={() =>
+                  scrollRef.current?.scrollBy({
+                    left: -320,
+                    behavior: "smooth",
+                  })
+                }
                 className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-earth-200 bg-white text-earth-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <FiChevronLeft size={20} />
               </button>
               <button
-                onClick={() => scrollRef.current?.scrollBy({ left: 320, behavior: "smooth" })}
+                onClick={() =>
+                  scrollRef.current?.scrollBy({ left: 320, behavior: "smooth" })
+                }
                 className="inline-flex h-12 w-12 items-center justify-center rounded-full border border-earth-200 bg-white text-earth-700 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <FiChevronRight size={20} />
@@ -179,8 +190,10 @@ const HomePage = () => {
           </div>
 
           <div className="relative">
-
-            <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-4 no-scrollbar sm:gap-5">
+            <div
+              ref={scrollRef}
+              className="flex gap-4 overflow-x-auto pb-4 no-scrollbar sm:gap-5"
+            >
               {CATEGORIES.map((cat, index) => (
                 <Link
                   key={cat.value}
@@ -198,7 +211,9 @@ const HomePage = () => {
                       <div className="inline-flex rounded-full bg-white/15 px-3 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-white backdrop-blur-sm">
                         {String(index + 1).padStart(2, "0")}
                       </div>
-                      <h3 className="mt-3 text-2xl font-semibold text-white">{cat.label}</h3>
+                      <h3 className="mt-3 text-2xl font-semibold text-white">
+                        {cat.label}
+                      </h3>
                       <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white transition-transform duration-300 group-hover:translate-x-1">
                         Explore category
                         <FiArrowRight />
@@ -223,7 +238,8 @@ const HomePage = () => {
               Why Our Customers Love Us
             </h2>
             <p className="mt-3 text-sm leading-7 text-earth-500 sm:text-base">
-              We focus on real taste, quality, and freshness — just like homemade food should be.
+              We focus on real taste, quality, and freshness — just like
+              homemade food should be.
             </p>
           </div>
 
@@ -238,8 +254,12 @@ const HomePage = () => {
                   <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 transition-transform duration-300 group-hover:scale-110">
                     <Icon size={20} />
                   </div>
-                  <h3 className="mt-5 text-xl font-semibold text-earth-950">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-earth-500">{item.text}</p>
+                  <h3 className="mt-5 text-xl font-semibold text-earth-950">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-earth-500">
+                    {item.text}
+                  </p>
                 </div>
               );
             })}
@@ -308,10 +328,12 @@ const HomePage = () => {
                 Real Taste, Just Like Home
               </h2>
               <p className="mt-4 text-sm leading-7 text-earth-500 sm:text-base">
-                Our recipes come from home kitchens, made with care and traditional methods passed down over time.
+                Our recipes come from home kitchens, made with care and
+                traditional methods passed down over time.
               </p>
               <p className="mt-4 text-sm leading-7 text-earth-500 sm:text-base">
-                We bring you authentic Andhra flavours so you can enjoy real homemade taste anywhere in India.
+                We bring you authentic Andhra flavours so you can enjoy real
+                homemade taste anywhere in India.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -367,7 +389,9 @@ const HomePage = () => {
                   ))}
                 </div>
 
-                <p className="text-base leading-8 text-earth-700">&quot;{t.text}&quot;</p>
+                <p className="text-base leading-8 text-earth-700">
+                  &quot;{t.text}&quot;
+                </p>
 
                 <div className="mt-6 border-t border-earth-100 pt-5">
                   <p className="font-semibold text-earth-950">{t.name}</p>
