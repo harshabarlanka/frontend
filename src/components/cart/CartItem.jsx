@@ -28,10 +28,15 @@ const CartItem = ({ item }) => {
     }
   };
 
+  // Resolve the correct product URL.
+  // productId in cart is always a plain ObjectId string (no slug field).
+  // Use /product/id/:id which maps to the backend's GET /api/products/id/:id route.
+  const productUrl = `/product/id/${item.productId}`;
+
   return (
     <div className="flex gap-4 py-5 border-b border-earth-100 last:border-0 animate-fade-in">
       {/* Image */}
-      <Link to={`/products/${item.productId}`} className="shrink-0">
+      <Link to={productUrl} className="shrink-0">
         <div className="w-20 h-20 rounded-xl overflow-hidden bg-earth-50 border border-earth-100">
           {item.image ? (
             <img
@@ -51,7 +56,7 @@ const CartItem = ({ item }) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <Link to={`/products/${item.productId}`}>
+            <Link to={productUrl}>
               <h4 className="font-display font-bold text-earth-900 text-sm leading-snug hover:text-brand-700 transition-colors line-clamp-2">
                 {item.name}
               </h4>

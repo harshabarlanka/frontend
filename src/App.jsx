@@ -87,9 +87,17 @@ const App = () => (
       <Route path="/products/all" element={<LegacyRedirect to="/products" />} />
       <Route path="/products/:category" element={<LegacyCategoryRedirect />} />
 
-      {/* Product detail */}
+      {/* Product detail — by slug (standard navigation from product cards) */}
       <Route
         path="/product/:slug"
+        element={<MainLayout><ProductDetailPage /></MainLayout>}
+      />
+
+      {/* Product detail — by MongoDB ObjectId (used by cart item links).
+          The :id segment is named "slug" so ProductDetailPage's useParams()
+          keeps working without any changes to that component. */}
+      <Route
+        path="/product/id/:slug"
         element={<MainLayout><ProductDetailPage /></MainLayout>}
       />
 

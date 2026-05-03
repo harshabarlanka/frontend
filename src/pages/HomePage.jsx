@@ -179,8 +179,6 @@ const HomePage = () => {
           </div>
 
           <div className="relative">
-            <div className="pointer-events-none absolute left-0 top-0 z-10 hidden h-full w-16 bg-gradient-to-r from-[#faf7f3] to-transparent sm:block" />
-            <div className="pointer-events-none absolute right-0 top-0 z-10 hidden h-full w-16 bg-gradient-to-l from-[#faf7f3] to-transparent sm:block" />
 
             <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-4 no-scrollbar sm:gap-5">
               {CATEGORIES.map((cat, index) => (
@@ -201,9 +199,6 @@ const HomePage = () => {
                         {String(index + 1).padStart(2, "0")}
                       </div>
                       <h3 className="mt-3 text-2xl font-semibold text-white">{cat.label}</h3>
-                      <p className="mt-2 max-w-[220px] text-sm leading-6 text-white/80">
-                        Authentic taste, just like home.
-                      </p>
                       <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-white transition-transform duration-300 group-hover:translate-x-1">
                         Explore category
                         <FiArrowRight />

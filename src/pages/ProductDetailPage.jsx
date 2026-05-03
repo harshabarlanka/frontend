@@ -10,7 +10,10 @@ import ErrorState from "../components/common/ErrorState";
 import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import toast from "react-hot-toast";
 import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
-import { transformImage } from "../utils/imageTransform";
+import api from "../api/axios";
+
+// Matches a 24-character hex MongoDB ObjectId
+const isObjectId = (str) => /^[a-f\d]{24}$/i.test(str);
 
 const ProductDetailPage = () => {
   const { slug } = useParams();
@@ -36,7 +39,11 @@ const ProductDetailPage = () => {
       try {
         setLoading(true);
         setError(null);
-        const { data } = await getProductAPI(slug);
+        // If the route param is a MongoDB ObjectId (coming from a cart link),
+        // use the /id/:id endpoint. Otherwise use the slug-based endpoint.
+        const { data } = isObjectId(slug)
+          ? await api.get(`/products/id/${slug}`)
+          : await getProductAPI(slug);
         if (!cancelled) setProduct(data.data.product);
       } catch (err) {
         if (!cancelled) setError(getErrorMessage(err));
@@ -111,7 +118,9 @@ const ProductDetailPage = () => {
       toast.success("Review submitted!");
       setReviewRating(0);
       setReviewText("");
-      const { data } = await getProductAPI(slug);
+      const { data } = isObjectId(slug)
+        ? await api.get(`/products/id/${slug}`)
+        : await getProductAPI(slug);
       setProduct(data.data.product);
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -158,7 +167,7 @@ const ProductDetailPage = () => {
             <div className="aspect-square rounded-2xl overflow-hidden bg-earth-100 border border-earth-100">
               {images[selectedImg] ? (
                 <img
-                  src={transformImage(images[selectedImg])}
+                  src={images[selectedImg]}
                   alt={product.name}
                   className="w-full h-full object-cover transition-all duration-300"
                 />
@@ -182,7 +191,7 @@ const ProductDetailPage = () => {
                   >
                     {img ? (
                       <img
-                        src={transformImage(img)}
+                        src={img}
                         alt=""
                         className="w-full h-full object-cover"
                       />
