@@ -16,7 +16,7 @@
  *   /products?sort=-ratings.average
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useLayoutEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { getProductsAPI, getBestsellersAPI } from "../api/product.api";
 import ProductGrid from "../components/product/ProductGrid";
@@ -29,18 +29,24 @@ const ProductsPage = () => {
   // ── URL state (single source of truth) ─────────────────────────────────────
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const category = searchParams.get("category") || "";   // e.g. "veg-pickles"
-  const tag      = searchParams.get("tag") || "";        // e.g. "bestseller"
-  const sort     = searchParams.get("sort") || "-createdAt";
-  const page     = Math.max(1, Number(searchParams.get("page") || 1));
+  const category = searchParams.get("category") || ""; // e.g. "veg-pickles"
+  const tag = searchParams.get("tag") || ""; // e.g. "bestseller"
+  const sort = searchParams.get("sort") || "-createdAt";
+  const page = Math.max(1, Number(searchParams.get("page") || 1));
 
   const isBestsellers = tag === "bestseller";
 
+  // ── Scroll to top on every filter / page / category change ─────────────────
+  // useLayoutEffect fires before paint so the user never sees a mid-page flash.
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [searchParams.toString()]);
+
   // ── Local UI state ──────────────────────────────────────────────────────────
   const [products, setProducts] = useState([]);
-  const [meta, setMeta]         = useState({ total: 0, pages: 1, page: 1 });
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState(null);
+  const [meta, setMeta] = useState({ total: 0, pages: 1, page: 1 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   // ── Filter updater ──────────────────────────────────────────────────────────
   /**
@@ -61,15 +67,16 @@ const ProductsPage = () => {
 
         // If switching to category, clear tag and vice-versa (they're mutually exclusive)
         if ("category" in updates) next.delete("tag");
-        if ("tag" in updates)      next.delete("category");
+        if ("tag" in updates) next.delete("category");
 
         Object.entries(updates).forEach(([key, value]) => {
           if (value) next.set(key, value);
-          else       next.delete(key);
+          else next.delete(key);
         });
 
         // Any filter change (not page itself) resets pagination
-        const isPageChange = Object.keys(updates).length === 1 && "page" in updates;
+        const isPageChange =
+          Object.keys(updates).length === 1 && "page" in updates;
         if (!isPageChange) next.set("page", "1");
 
         return next;
@@ -85,7 +92,10 @@ const ProductsPage = () => {
     try {
       if (isBestsellers) {
         // Bestsellers come from a dedicated endpoint (sorted by order count + rating)
-        const { data } = await getBestsellersAPI({ page, limit: PRODUCTS_PER_PAGE });
+        const { data } = await getBestsellersAPI({
+          page,
+          limit: PRODUCTS_PER_PAGE,
+        });
         setProducts(data.data?.products ?? []);
         setMeta(data.meta ?? { total: 0, pages: 1, page: 1 });
       } else {
@@ -110,7 +120,8 @@ const ProductsPage = () => {
   // ── Derived page title ──────────────────────────────────────────────────────
   const pageTitle = (() => {
     if (isBestsellers) return "Best Sellers";
-    if (category) return CATEGORIES.find((c) => c.value === category)?.label ?? "Products";
+    if (category)
+      return CATEGORIES.find((c) => c.value === category)?.label ?? "Products";
     return "All Products";
   })();
 
@@ -118,7 +129,6 @@ const ProductsPage = () => {
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">
       <div className="page-container">
-
         {/* ── Header row: title + sort ── */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
@@ -153,7 +163,7 @@ const ProductsPage = () => {
           isBestsellers={isBestsellers}
           onSelect={(cat) => {
             if (cat === "bestseller") updateParams({ tag: "bestseller" });
-            else                      updateParams({ category: cat });
+            else updateParams({ category: cat });
           }}
           onClear={() => updateParams({ category: "", tag: "" })}
         />
@@ -174,15 +184,20 @@ const ProductsPage = () => {
 
 // ── Category pill filter bar ─────────────────────────────────────────────────
 
-const CategoryPills = ({ activeCategory, isBestsellers, onSelect, onClear }) => {
+const CategoryPills = ({
+  activeCategory,
+  isBestsellers,
+  onSelect,
+  onClear,
+}) => {
   const pills = [
-    { label: "All",         value: "all" },
+    { label: "All", value: "all" },
     { label: "Best Sellers", value: "bestseller" },
     ...CATEGORIES.map((c) => ({ label: c.label, value: c.value })),
   ];
 
   const getActive = (value) => {
-    if (value === "all")        return !activeCategory && !isBestsellers;
+    if (value === "all") return !activeCategory && !isBestsellers;
     if (value === "bestseller") return isBestsellers;
     return activeCategory === value;
   };
@@ -192,7 +207,7 @@ const CategoryPills = ({ activeCategory, isBestsellers, onSelect, onClear }) => 
       {pills.map(({ label, value }) => (
         <button
           key={value}
-          onClick={() => value === "all" ? onClear() : onSelect(value)}
+          onClick={() => (value === "all" ? onClear() : onSelect(value))}
           className={`px-4 py-1.5 rounded-full text-sm font-semibold border transition-colors ${
             getActive(value)
               ? "bg-brand-600 text-white border-brand-600"
