@@ -64,7 +64,7 @@ const AdminPage = ({ children }) => (
 );
 
 const App = () => (
-  <Suspense fallback={null}>
+  <Suspense fallback={<PageLoader />}>
     <ScrollManager />
     <Routes>
       {/* ─── PUBLIC ─── */}
