@@ -161,8 +161,8 @@ const CheckoutPage = () => {
         amount: orderData.razorpay.amount,
         currency: orderData.razorpay.currency,
         order_id: orderData.razorpay.orderId,
-        name: "Naidu Gari Ruchulu",
-        description: "Pickles • Sweets • Snacks • Podis",
+        name: "",
+        description: "Foods",
         image:
           "https://res.cloudinary.com/dh16zfqny/image/upload/v1777973391/favicon_result_nugs2j.png",
         prefill: {
