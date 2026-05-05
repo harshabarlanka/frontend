@@ -161,9 +161,9 @@ const CheckoutPage = () => {
         amount: orderData.razorpay.amount,
         currency: orderData.razorpay.currency,
         order_id: orderData.razorpay.orderId,
-        name: "Naidu Gari Ruchulu",
-        description: `Order ${orderData.order.orderNumber}`,
-        image: "/favicon.svg",
+        name: "NAIDU GARI RUCHULU",
+        description: "Traditional Homemade Foods",
+        image: "/favicon_result.png",
         prefill: {
           name: user.name,
           email: user.email,
