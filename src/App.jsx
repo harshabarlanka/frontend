@@ -4,7 +4,6 @@ import ScrollManager from "./components/common/ScrollManager";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
-import { PageLoader } from "./components/common/Loader";
 import AnnouncementBar from "./components/common/AnnouncementBar";
 
 // Footer pages
@@ -38,7 +37,9 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 // Admin lazy
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
-const AdminOrderDetail = lazy(() => import("./pages/admin/AdminOrderDetailPage"));
+const AdminOrderDetail = lazy(
+  () => import("./pages/admin/AdminOrderDetailPage"),
+);
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
@@ -63,11 +64,18 @@ const AdminPage = ({ children }) => (
 );
 
 const App = () => (
-  <Suspense fallback={<PageLoader />}>
+  <Suspense fallback={null}>
     <ScrollManager />
     <Routes>
       {/* ─── PUBLIC ─── */}
-      <Route path="/" element={<MainLayout noPad><HomePage /></MainLayout>} />
+      <Route
+        path="/"
+        element={
+          <MainLayout noPad>
+            <HomePage />
+          </MainLayout>
+        }
+      />
 
       {/* ✅ Single unified products route — all filtering via query params */}
       {/* Examples:
@@ -79,18 +87,29 @@ const App = () => (
       */}
       <Route
         path="/products"
-        element={<MainLayout><ProductsPage /></MainLayout>}
+        element={
+          <MainLayout>
+            <ProductsPage />
+          </MainLayout>
+        }
       />
 
       {/* Legacy redirects — catch old dynamic routes and send to /products */}
-      <Route path="/products/bestsellers" element={<LegacyRedirect to="/products?tag=bestseller" />} />
+      <Route
+        path="/products/bestsellers"
+        element={<LegacyRedirect to="/products?tag=bestseller" />}
+      />
       <Route path="/products/all" element={<LegacyRedirect to="/products" />} />
       <Route path="/products/:category" element={<LegacyCategoryRedirect />} />
 
       {/* Product detail — by slug (standard navigation from product cards) */}
       <Route
         path="/product/:slug"
-        element={<MainLayout><ProductDetailPage /></MainLayout>}
+        element={
+          <MainLayout>
+            <ProductDetailPage />
+          </MainLayout>
+        }
       />
 
       {/* Product detail — by MongoDB ObjectId (used by cart item links).
@@ -98,56 +117,216 @@ const App = () => (
           keeps working without any changes to that component. */}
       <Route
         path="/product/id/:slug"
-        element={<MainLayout><ProductDetailPage /></MainLayout>}
+        element={
+          <MainLayout>
+            <ProductDetailPage />
+          </MainLayout>
+        }
       />
 
       {/* Cart */}
-      <Route path="/cart" element={<MainLayout><CartPage /></MainLayout>} />
+      <Route
+        path="/cart"
+        element={
+          <MainLayout>
+            <CartPage />
+          </MainLayout>
+        }
+      />
 
       {/* Footer pages */}
-      <Route path="/shipping-policy" element={<MainLayout><ShippingPolicy /></MainLayout>} />
-      <Route path="/return-policy" element={<MainLayout><ReturnPolicy /></MainLayout>} />
-      <Route path="/privacy-policy" element={<MainLayout><PrivacyPolicy /></MainLayout>} />
-      <Route path="/terms" element={<MainLayout><Terms /></MainLayout>} />
-      <Route path="/contact" element={<MainLayout><Contact /></MainLayout>} />
-      <Route path="/faq" element={<MainLayout><FAQ /></MainLayout>} />
+      <Route
+        path="/shipping-policy"
+        element={
+          <MainLayout>
+            <ShippingPolicy />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/return-policy"
+        element={
+          <MainLayout>
+            <ReturnPolicy />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/privacy-policy"
+        element={
+          <MainLayout>
+            <PrivacyPolicy />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/terms"
+        element={
+          <MainLayout>
+            <Terms />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/contact"
+        element={
+          <MainLayout>
+            <Contact />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/faq"
+        element={
+          <MainLayout>
+            <FAQ />
+          </MainLayout>
+        }
+      />
 
       {/* ─── AUTH ─── */}
-      <Route path="/login" element={<AuthLayout><LoginPage /></AuthLayout>} />
-      <Route path="/register" element={<AuthLayout><LoginPage /></AuthLayout>} />
-      <Route path="/forgot-password" element={<AuthLayout><ForgotPassword /></AuthLayout>} />
-      <Route path="/reset-password" element={<AuthLayout><ResetPassword /></AuthLayout>} />
+      <Route
+        path="/login"
+        element={
+          <AuthLayout>
+            <LoginPage />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthLayout>
+            <LoginPage />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <AuthLayout>
+            <ForgotPassword />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <AuthLayout>
+            <ResetPassword />
+          </AuthLayout>
+        }
+      />
 
       {/* ─── USER ─── */}
       <Route
         path="/checkout"
-        element={<ProtectedRoute><MainLayout><CheckoutPage /></MainLayout></ProtectedRoute>}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <CheckoutPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/orders"
-        element={<ProtectedRoute><MainLayout><OrdersPage /></MainLayout></ProtectedRoute>}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <OrdersPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/orders/:id"
-        element={<ProtectedRoute><MainLayout><OrderDetailPage /></MainLayout></ProtectedRoute>}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <OrderDetailPage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/profile"
-        element={<ProtectedRoute><MainLayout><ProfilePage /></MainLayout></ProtectedRoute>}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ProfilePage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/account"
-        element={<ProtectedRoute><MainLayout><ProfilePage /></MainLayout></ProtectedRoute>}
+        element={
+          <ProtectedRoute>
+            <MainLayout>
+              <ProfilePage />
+            </MainLayout>
+          </ProtectedRoute>
+        }
       />
 
       {/* ─── ADMIN ─── */}
-      <Route path="/admin" element={<AdminPage><AdminDashboard /></AdminPage>} />
-      <Route path="/admin/dashboard" element={<AdminPage><AdminDashboard /></AdminPage>} />
-      <Route path="/admin/orders" element={<AdminPage><AdminOrders /></AdminPage>} />
-      <Route path="/admin/orders/:id" element={<AdminPage><AdminOrderDetail /></AdminPage>} />
-      <Route path="/admin/products" element={<AdminPage><AdminProducts /></AdminPage>} />
-      <Route path="/admin/users" element={<AdminPage><AdminUsers /></AdminPage>} />
-      <Route path="/admin/coupons" element={<AdminPage><AdminCoupons /></AdminPage>} />
+      <Route
+        path="/admin"
+        element={
+          <AdminPage>
+            <AdminDashboard />
+          </AdminPage>
+        }
+      />
+      <Route
+        path="/admin/dashboard"
+        element={
+          <AdminPage>
+            <AdminDashboard />
+          </AdminPage>
+        }
+      />
+      <Route
+        path="/admin/orders"
+        element={
+          <AdminPage>
+            <AdminOrders />
+          </AdminPage>
+        }
+      />
+      <Route
+        path="/admin/orders/:id"
+        element={
+          <AdminPage>
+            <AdminOrderDetail />
+          </AdminPage>
+        }
+      />
+      <Route
+        path="/admin/products"
+        element={
+          <AdminPage>
+            <AdminProducts />
+          </AdminPage>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminPage>
+            <AdminUsers />
+          </AdminPage>
+        }
+      />
+      <Route
+        path="/admin/coupons"
+        element={
+          <AdminPage>
+            <AdminCoupons />
+          </AdminPage>
+        }
+      />
 
       {/* 404 */}
       <Route path="*" element={<NotFoundPage />} />
