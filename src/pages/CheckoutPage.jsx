@@ -162,8 +162,9 @@ const CheckoutPage = () => {
         currency: orderData.razorpay.currency,
         order_id: orderData.razorpay.orderId,
         name: "NAIDU GARI RUCHULU",
-        description: "Traditional Homemade Foods",
-        image: "/favicon_result.png",
+        description: "Homemade Foods",
+        image:
+          "https://res.cloudinary.com/dh16zfqny/image/upload/v1777973391/favicon_result_nugs2j.png",
         prefill: {
           name: user.name,
           email: user.email,
