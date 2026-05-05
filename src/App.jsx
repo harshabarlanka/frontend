@@ -5,7 +5,7 @@ import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import AnnouncementBar from "./components/common/AnnouncementBar";
-
+import { PageLoader } from "./components/common/Loader";
 // Footer pages
 import ShippingPolicy from "./pages/ShippingPolicy";
 import ReturnPolicy from "./pages/ReturnPolicy";
