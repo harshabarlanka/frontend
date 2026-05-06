@@ -562,7 +562,9 @@ const CheckoutPage = () => {
                             {item.name}
                           </p>
                           <p className="font-body text-xs text-earth-500">
-                            {item.size} × {item.quantity}
+                            {item.itemType === "combo"
+                              ? `Bundle · ${item.comboProducts?.length ?? 0} items`
+                              : `${item.size} × ${item.quantity}`}
                           </p>
                         </div>
                         <p className="font-body text-sm font-bold text-earth-900 flex-shrink-0">

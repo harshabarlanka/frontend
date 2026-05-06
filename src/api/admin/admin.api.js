@@ -54,3 +54,9 @@ export const deleteCouponAPI = (id) => api.delete(`/admin/coupons/${id}`);
 // ── Feature 2: Coupon validate (user-facing) ──────────────────────────────────
 export const validateCouponAPI = (code, orderSubtotal) =>
   api.post("/coupons/validate", { code, orderSubtotal });
+
+// ── Combo Management (Admin) ───────────────────────────────────────────────────
+export const getAdminCombosAPI  = ()        => api.get("/admin/combos");
+export const createComboAPI     = (data)    => api.post("/admin/combos", data);
+export const updateComboAPI     = (id, data)=> api.put(`/admin/combos/${id}`, data);
+export const deleteComboAPI     = (id)      => api.delete(`/admin/combos/${id}`);

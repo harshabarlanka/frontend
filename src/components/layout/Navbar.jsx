@@ -9,7 +9,13 @@
  */
 
 import { useState, useEffect, useRef } from "react";
-import { Link, NavLink, useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  useNavigate,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
 import logo from "../../assets/logo.png";
@@ -23,6 +29,11 @@ const NAV_LINKS = [
     label: "Home",
     to: "/",
     activeWhen: (_sp, pathname) => pathname === "/",
+  },
+  {
+    label: "Combos",
+    to: "/combos",
+    activeWhen: (_sp, pathname) => pathname.startsWith("/combos"),
   },
   {
     label: "Veg Pickles",
@@ -114,16 +125,12 @@ const Navbar = () => {
 
   const desktopLinkCls = (link) =>
     `font-body font-semibold text-sm tracking-wide transition ${
-      isActive(link)
-        ? "text-brand-600"
-        : "text-earth-700 hover:text-brand-600"
+      isActive(link) ? "text-brand-600" : "text-earth-700 hover:text-brand-600"
     }`;
 
   const mobileLinkCls = (link) =>
     `block font-body font-semibold text-sm py-2.5 transition ${
-      isActive(link)
-        ? "text-brand-600"
-        : "text-earth-700 hover:text-brand-600"
+      isActive(link) ? "text-brand-600" : "text-earth-700 hover:text-brand-600"
     }`;
 
   return (
@@ -136,7 +143,6 @@ const Navbar = () => {
     >
       <div className="page-container">
         <div className="flex items-center justify-between h-20 sm:h-24">
-
           {/* LOGO */}
           <Link to="/" className="flex items-center shrink-0">
             <img
@@ -162,7 +168,10 @@ const Navbar = () => {
               </Link>
             ))}
             {isAdmin && (
-              <Link to="/admin" className="font-body font-semibold text-sm tracking-wide text-spice-600 hover:text-spice-700 transition">
+              <Link
+                to="/admin"
+                className="font-body font-semibold text-sm tracking-wide text-spice-600 hover:text-spice-700 transition"
+              >
                 Admin
               </Link>
             )}
@@ -170,15 +179,24 @@ const Navbar = () => {
 
           {/* RIGHT: CART + USER + HAMBURGER */}
           <div className="flex items-center gap-2 sm:gap-3">
-
             {/* CART ICON */}
             <Link
               to="/cart"
               aria-label="Cart"
               className="relative p-2 rounded-lg hover:bg-earth-50 transition-colors"
             >
-              <svg className="w-5 h-5 text-earth-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6h13" />
+              <svg
+                className="w-5 h-5 text-earth-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6h13"
+                />
               </svg>
               {cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-brand-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
@@ -189,7 +207,11 @@ const Navbar = () => {
 
             {/* USER MENU (desktop dropdown) */}
             {user ? (
-              <div className="relative hidden sm:block" id="user-menu" ref={dropRef}>
+              <div
+                className="relative hidden sm:block"
+                id="user-menu"
+                ref={dropRef}
+              >
                 <button
                   onClick={() => setUserDrop((v) => !v)}
                   aria-expanded={userDrop}
@@ -204,25 +226,52 @@ const Navbar = () => {
                   </span>
                   <svg
                     className={`w-3 h-3 text-earth-500 transition-transform ${userDrop ? "rotate-180" : ""}`}
-                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
 
                 {userDrop && (
                   <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-xl shadow-xl border border-earth-100 py-1.5 animate-fade-in">
                     <div className="px-4 py-2.5 border-b border-earth-100">
-                      <p className="font-body text-xs font-bold text-earth-800 truncate">{user.name}</p>
-                      <p className="font-body text-xs text-earth-400 truncate mt-0.5">{user.email}</p>
+                      <p className="font-body text-xs font-bold text-earth-800 truncate">
+                        {user.name}
+                      </p>
+                      <p className="font-body text-xs text-earth-400 truncate mt-0.5">
+                        {user.email}
+                      </p>
                     </div>
                     <div className="py-1">
-                      <DropLink to="/profile" icon="👤" label="My Profile" onClick={() => setUserDrop(false)} />
-                      <DropLink to="/orders" icon="📦" label="My Orders" onClick={() => setUserDrop(false)} />
+                      <DropLink
+                        to="/profile"
+                        icon="👤"
+                        label="My Profile"
+                        onClick={() => setUserDrop(false)}
+                      />
+                      <DropLink
+                        to="/orders"
+                        icon="📦"
+                        label="My Orders"
+                        onClick={() => setUserDrop(false)}
+                      />
                     </div>
                     {isAdmin && (
                       <div className="border-t border-earth-100 py-1">
-                        <DropLink to="/admin" icon="⚙️" label="Admin Panel" className="text-spice-600 hover:bg-spice-50" onClick={() => setUserDrop(false)} />
+                        <DropLink
+                          to="/admin"
+                          icon="⚙️"
+                          label="Admin Panel"
+                          className="text-spice-600 hover:bg-spice-50"
+                          onClick={() => setUserDrop(false)}
+                        />
                       </div>
                     )}
                     <div className="border-t border-earth-100 py-1">
@@ -239,8 +288,12 @@ const Navbar = () => {
               </div>
             ) : (
               <div className="hidden sm:flex gap-2">
-                <Link to="/login" className="btn-ghost text-sm">Login</Link>
-                <Link to="/register" className="btn-primary text-sm">Sign Up</Link>
+                <Link to="/login" className="btn-ghost text-sm">
+                  Login
+                </Link>
+                <Link to="/register" className="btn-primary text-sm">
+                  Sign Up
+                </Link>
               </div>
             )}
 
@@ -251,9 +304,15 @@ const Navbar = () => {
               className="md:hidden p-2 rounded-lg hover:bg-earth-50 transition"
             >
               <div className="w-5 h-4 flex flex-col justify-between">
-                <span className={`block h-0.5 bg-earth-700 rounded transition-all duration-200 ${menuOpen ? "rotate-45 translate-y-[7px]" : ""}`} />
-                <span className={`block h-0.5 bg-earth-700 rounded transition-all duration-200 ${menuOpen ? "opacity-0 scale-x-0" : ""}`} />
-                <span className={`block h-0.5 bg-earth-700 rounded transition-all duration-200 ${menuOpen ? "-rotate-45 -translate-y-[9px]" : ""}`} />
+                <span
+                  className={`block h-0.5 bg-earth-700 rounded transition-all duration-200 ${menuOpen ? "rotate-45 translate-y-[7px]" : ""}`}
+                />
+                <span
+                  className={`block h-0.5 bg-earth-700 rounded transition-all duration-200 ${menuOpen ? "opacity-0 scale-x-0" : ""}`}
+                />
+                <span
+                  className={`block h-0.5 bg-earth-700 rounded transition-all duration-200 ${menuOpen ? "-rotate-45 -translate-y-[9px]" : ""}`}
+                />
               </div>
             </button>
           </div>
@@ -283,14 +342,34 @@ const Navbar = () => {
                       {user.name?.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-body text-sm font-bold text-earth-900 truncate">{user.name}</p>
-                      <p className="font-body text-xs text-earth-400 truncate">{user.email}</p>
+                      <p className="font-body text-sm font-bold text-earth-900 truncate">
+                        {user.name}
+                      </p>
+                      <p className="font-body text-xs text-earth-400 truncate">
+                        {user.email}
+                      </p>
                     </div>
                   </div>
-                  <MobileNavLink to="/profile" icon="👤" label="My Profile" onClick={() => setMenuOpen(false)} />
-                  <MobileNavLink to="/orders" icon="📦" label="My Orders" onClick={() => setMenuOpen(false)} />
+                  <MobileNavLink
+                    to="/profile"
+                    icon="👤"
+                    label="My Profile"
+                    onClick={() => setMenuOpen(false)}
+                  />
+                  <MobileNavLink
+                    to="/orders"
+                    icon="📦"
+                    label="My Orders"
+                    onClick={() => setMenuOpen(false)}
+                  />
                   {isAdmin && (
-                    <MobileNavLink to="/admin" icon="⚙️" label="Admin Panel" onClick={() => setMenuOpen(false)} className="text-spice-600" />
+                    <MobileNavLink
+                      to="/admin"
+                      icon="⚙️"
+                      label="Admin Panel"
+                      onClick={() => setMenuOpen(false)}
+                      className="text-spice-600"
+                    />
                   )}
                   <button
                     onClick={handleLogout}
@@ -302,8 +381,20 @@ const Navbar = () => {
                 </div>
               ) : (
                 <div className="border-t border-earth-100 pt-3 flex gap-2">
-                  <Link to="/login" className="flex-1 btn-secondary text-sm text-center" onClick={() => setMenuOpen(false)}>Login</Link>
-                  <Link to="/register" className="flex-1 btn-primary text-sm text-center" onClick={() => setMenuOpen(false)}>Sign Up</Link>
+                  <Link
+                    to="/login"
+                    className="flex-1 btn-secondary text-sm text-center"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="flex-1 btn-primary text-sm text-center"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Sign Up
+                  </Link>
                 </div>
               )}
             </div>

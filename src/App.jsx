@@ -43,6 +43,11 @@ const AdminOrderDetail = lazy(
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
+const AdminCombos  = lazy(() => import("./pages/admin/AdminCombos"));
+
+// Combo pages
+const CombosPage      = lazy(() => import("./pages/CombosPage"));
+const ComboDetailPage = lazy(() => import("./pages/ComboDetailPage"));
 
 const MainLayout = ({ children, noPad = false }) => (
   <div className="flex flex-col min-h-screen">
@@ -130,6 +135,24 @@ const App = () => (
         element={
           <MainLayout>
             <CartPage />
+          </MainLayout>
+        }
+      />
+
+      {/* Combos */}
+      <Route
+        path="/combos"
+        element={
+          <MainLayout>
+            <CombosPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/combos/:slug"
+        element={
+          <MainLayout>
+            <ComboDetailPage />
           </MainLayout>
         }
       />
@@ -324,6 +347,14 @@ const App = () => (
         element={
           <AdminPage>
             <AdminCoupons />
+          </AdminPage>
+        }
+      />
+      <Route
+        path="/admin/combos"
+        element={
+          <AdminPage>
+            <AdminCombos />
           </AdminPage>
         }
       />

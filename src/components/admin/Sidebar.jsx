@@ -5,7 +5,8 @@ const NAV_ITEMS = [
   { to: '/admin/dashboard', icon: '📊', label: 'Dashboard' },
   { to: '/admin/orders',    icon: '📦', label: 'Orders'    },
   { to: '/admin/products',  icon: '🫙', label: 'Products'  },
-  { to: '/admin/coupons',   icon: '🎟️', label: 'Coupons'   }, // Feature 2
+  { to: '/admin/combos',    icon: '🎁', label: 'Combos'    },
+  { to: '/admin/coupons',   icon: '🎟️', label: 'Coupons'   },
   { to: '/admin/users',     icon: '👥', label: 'Users'     },
 ]
 
