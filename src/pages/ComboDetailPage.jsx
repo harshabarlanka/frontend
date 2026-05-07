@@ -191,26 +191,8 @@ const ComboDetailPage = () => {
 
               {/* Discount */}
               {discountPercent > 0 && (
-                <div className="absolute top-4 left-4 bg-[#b4532a] text-white px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-xl">
-                  🔥 {discountPercent}% OFF
-                </div>
-              )}
-
-              {/* Combo Badge */}
-              <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-earth-900 px-4 py-2 rounded-full text-[11px] sm:text-xs font-bold shadow-md tracking-wide uppercase">
-                Combo Pack
-              </div>
-
-              {/* Floating savings */}
-              {savings > 0 && (
-                <div className="absolute bottom-4 left-4 bg-green-500 text-white px-4 py-2 rounded-2xl shadow-lg">
-                  <p className="text-[10px] uppercase tracking-wider font-semibold opacity-90">
-                    You Save
-                  </p>
-
-                  <p className="text-sm sm:text-base font-bold">
-                    {formatPrice(savings)}
-                  </p>
+                <div className="absolute top-4 left-4 bg-[#b4532a]/95 backdrop-blur-md text-white px-4 py-2 rounded-2xl text-xs sm:text-sm font-bold shadow-lg border border-white/10">
+                  {discountPercent}% OFF
                 </div>
               )}
             </div>
