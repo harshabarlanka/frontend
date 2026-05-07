@@ -243,46 +243,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Why Choose Us */}
-      <section className="py-12 sm:py-16 lg:py-20">
-        <div className="page-container">
-          <div className="mb-10 max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600">
-              Why Choose Us
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold text-earth-950 sm:text-4xl">
-              Why Our Customers Love Us
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-earth-500 sm:text-base">
-              We focus on real taste, quality, and freshness — just like
-              homemade food should be.
-            </p>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {TRUST_POINTS.map((item) => {
-              const Icon = item.icon;
-              return (
-                <div
-                  key={item.title}
-                  className="group rounded-[24px] border border-earth-100 bg-white p-6 shadow-[0_16px_45px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_60px_rgba(15,23,42,0.10)]"
-                >
-                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 transition-transform duration-300 group-hover:scale-110">
-                    <Icon size={20} />
-                  </div>
-                  <h3 className="mt-5 text-xl font-semibold text-earth-950">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm leading-7 text-earth-500">
-                    {item.text}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
       {/* Best Sellers */}
       <section className="bg-[radial-gradient(circle_at_top,#fff7ed,transparent_42%),linear-gradient(to_bottom,#ffffff,#fffaf5)] py-12 sm:py-16 lg:py-20">
         <div className="page-container">
@@ -357,7 +317,45 @@ const HomePage = () => {
           </div>
         </section>
       )}
+      {/* Why Choose Us */}
+      <section className="py-12 sm:py-16 lg:py-20">
+        <div className="page-container">
+          <div className="mb-10 max-w-2xl">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand-600">
+              Why Choose Us
+            </p>
+            <h2 className="mt-2 text-3xl font-semibold text-earth-950 sm:text-4xl">
+              Why Our Customers Love Us
+            </h2>
+            <p className="mt-3 text-sm leading-7 text-earth-500 sm:text-base">
+              We focus on real taste, quality, and freshness — just like
+              homemade food should be.
+            </p>
+          </div>
 
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {TRUST_POINTS.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div
+                  key={item.title}
+                  className="group rounded-[24px] border border-earth-100 bg-white p-6 shadow-[0_16px_45px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_60px_rgba(15,23,42,0.10)]"
+                >
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 transition-transform duration-300 group-hover:scale-110">
+                    <Icon size={20} />
+                  </div>
+                  <h3 className="mt-5 text-xl font-semibold text-earth-950">
+                    {item.title}
+                  </h3>
+                  <p className="mt-2 text-sm leading-7 text-earth-500">
+                    {item.text}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
       {/* Story */}
       <section className="py-12 sm:py-16 lg:py-20">
         <div className="page-container">

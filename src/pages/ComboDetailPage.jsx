@@ -120,8 +120,6 @@ const ComboDetailPage = () => {
       for (let i = 0; i < qty; i++) {
         await addComboToCart(combo._id, 1);
       }
-
-      toast.success("Combo added to cart");
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -290,8 +288,6 @@ const ComboDetailPage = () => {
                 </span>
               )}
             </div>
-
-            {/* Title */}
             {/* Title */}
             <div>
               <h1 className="font-display font-bold text-2xl sm:text-3xl lg:text-[34px] text-earth-950 leading-[1.12] max-w-2xl">
