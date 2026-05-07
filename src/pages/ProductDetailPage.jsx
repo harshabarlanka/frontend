@@ -33,7 +33,9 @@ const ProductDetailPage = () => {
   const [reviewText, setReviewText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
+  const [reviewPage, setReviewPage] = useState(1);
 
+  const REVIEWS_PER_PAGE = 3;
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
@@ -133,7 +135,14 @@ const ProductDetailPage = () => {
   const images = product.images?.length > 0 ? product.images : [null];
   const avgRating = product.ratings?.average || 0;
   const reviewCount = product.ratings?.count || 0;
+  const reviews = product.reviews || [];
 
+  const totalReviewPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
+
+  const paginatedReviews = reviews.slice(
+    (reviewPage - 1) * REVIEWS_PER_PAGE,
+    reviewPage * REVIEWS_PER_PAGE,
+  );
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">
       <div className="page-container">
@@ -513,41 +522,95 @@ const ProductDetailPage = () => {
 
                 {/* Existing reviews */}
                 {product.reviews?.length > 0 ? (
-                  <div className="space-y-4">
-                    {product.reviews.map((review, idx) => (
-                      <div
-                        key={idx}
-                        className="border-b border-earth-100 pb-5 last:border-0"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center font-body font-bold text-brand-700 text-sm shrink-0">
-                            {review.name?.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="font-body font-bold text-earth-900 text-sm">
-                                {review.name}
-                              </span>
-                              <span className="font-body text-xs text-earth-400">
-                                {formatDate(review.createdAt)}
-                              </span>
+                  <>
+                    <div className="space-y-4">
+                      {paginatedReviews.map((review, idx) => (
+                        <div
+                          key={idx}
+                          className="border-b border-earth-100 pb-5 last:border-0"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center font-body font-bold text-brand-700 text-sm shrink-0">
+                              {review.name?.charAt(0).toUpperCase()}
                             </div>
-                            <div className="flex items-center gap-2 my-1">
-                              <StarRating rating={review.rating} size="sm" />
-                              <span className="text-xs font-semibold text-earth-700">
-                                {review.rating.toFixed(1)} out of 5
-                              </span>
+
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="font-body font-bold text-earth-900 text-sm">
+                                  {review.name}
+                                </span>
+
+                                <span className="font-body text-xs text-earth-400">
+                                  {formatDate(review.createdAt)}
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-2 my-1">
+                                <StarRating rating={review.rating} size="sm" />
+
+                                <span className="text-xs font-semibold text-earth-700">
+                                  {review.rating.toFixed(1)} out of 5
+                                </span>
+                              </div>
+
+                              {review.comment && (
+                                <p className="font-body text-earth-600 text-sm leading-relaxed mt-1">
+                                  {review.comment}
+                                </p>
+                              )}
                             </div>
-                            {review.comment && (
-                              <p className="font-body text-earth-600 text-sm leading-relaxed mt-1">
-                                {review.comment}
-                              </p>
-                            )}
                           </div>
                         </div>
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    {totalReviewPages > 1 && (
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-6">
+                        <button
+                          onClick={() =>
+                            setReviewPage((p) => Math.max(1, p - 1))
+                          }
+                          disabled={reviewPage === 1}
+                          className="px-4 py-2 rounded-xl border border-earth-200 bg-white text-sm font-semibold text-earth-700 transition-all hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          Prev
+                        </button>
+
+                        {Array.from({ length: totalReviewPages }).map(
+                          (_, idx) => {
+                            const page = idx + 1;
+
+                            return (
+                              <button
+                                key={page}
+                                onClick={() => setReviewPage(page)}
+                                className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                                  reviewPage === page
+                                    ? "bg-brand-600 text-white shadow-md"
+                                    : "bg-white border border-earth-200 text-earth-700 hover:border-brand-400"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            );
+                          },
+                        )}
+
+                        <button
+                          onClick={() =>
+                            setReviewPage((p) =>
+                              Math.min(totalReviewPages, p + 1),
+                            )
+                          }
+                          disabled={reviewPage === totalReviewPages}
+                          className="px-4 py-2 rounded-xl border border-earth-200 bg-white text-sm font-semibold text-earth-700 transition-all hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          Next
+                        </button>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 ) : (
                   <p className="font-body text-earth-400 text-center py-8">
                     No reviews yet. Be the first!

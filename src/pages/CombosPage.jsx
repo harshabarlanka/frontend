@@ -34,32 +34,46 @@ const CombosPage = () => {
   if (error) return <ErrorState message={error} />;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2 pb-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-display font-bold text-earth-900">
-          Combo Bundles
-        </h1>
-        <p className="text-earth-500 mt-2 font-body">
-          Save more with our handpicked combo deals — curated for every taste.
-        </p>
-      </div>
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+    {/* Breadcrumb */}
+    <nav className="flex items-center gap-2 text-xs font-body text-earth-400 mb-6 overflow-x-auto whitespace-nowrap scrollbar-hide">
+      <span className="hover:text-brand-600 transition-colors cursor-pointer">
+        Home
+      </span>
 
-      {combos.length === 0 ? (
-        <EmptyState
-          title="No Combos Available"
-          message="We're preparing exciting combo deals. Check back soon!"
-          icon="🎁"
-        />
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-          {combos.map((combo) => (
-            <ComboCard key={combo._id} combo={combo} />
-          ))}
-        </div>
-      )}
+      <span>/</span>
+
+      <span className="text-earth-700 font-semibold">
+        Combos
+      </span>
+    </nav>
+
+    {/* Header */}
+    <div className="mb-8">
+      <h1 className="text-3xl font-display font-bold text-earth-900">
+        Combo Offers
+      </h1>
+
+      <p className="text-earth-500 mt-2 font-body max-w-2xl">
+        Save more with our handpicked combo deals — curated for every taste.
+      </p>
     </div>
-  );
+
+    {combos.length === 0 ? (
+      <EmptyState
+        title="No Combos Available"
+        message="We're preparing exciting combo deals. Check back soon!"
+        icon="🎁"
+      />
+    ) : (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        {combos.map((combo) => (
+          <ComboCard key={combo._id} combo={combo} />
+        ))}
+      </div>
+    )}
+  </div>
+);
 };
 
 export default CombosPage;
