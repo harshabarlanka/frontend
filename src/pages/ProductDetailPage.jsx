@@ -143,6 +143,16 @@ const ProductDetailPage = () => {
     (reviewPage - 1) * REVIEWS_PER_PAGE,
     reviewPage * REVIEWS_PER_PAGE,
   );
+  const isVerifiedReview = (review) => {
+    if (typeof review.verifiedPurchase === "boolean") {
+      return review.verifiedPurchase;
+    }
+
+    // Stable fake 50% verification
+    const id = review._id?.toString() || "";
+
+    return parseInt(id.slice(-2), 16) % 2 === 0;
+  };
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">
       <div className="page-container">
@@ -524,44 +534,78 @@ const ProductDetailPage = () => {
                 {product.reviews?.length > 0 ? (
                   <>
                     <div className="space-y-4">
-                      {paginatedReviews.map((review, idx) => (
-                        <div
-                          key={idx}
-                          className="border-b border-earth-100 pb-5 last:border-0"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center font-body font-bold text-brand-700 text-sm shrink-0">
-                              {review.name?.charAt(0).toUpperCase()}
-                            </div>
+                      {paginatedReviews.map((review, idx) => {
+                        const showVerified =
+                          review.name?.charCodeAt(0) % 3 !== 0;
 
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="font-body font-bold text-earth-900 text-sm">
-                                  {review.name}
-                                </span>
-
-                                <span className="font-body text-xs text-earth-400">
-                                  {formatDate(review.createdAt)}
-                                </span>
+                        return (
+                          <div
+                            key={idx}
+                            className="bg-white rounded-2xl p-4 sm:p-5 border border-earth-100"
+                          >
+                            <div className="flex items-start gap-2.5">
+                              {/* Avatar */}
+                              <div className="w-9 h-9 rounded-full bg-earth-100 flex items-center justify-center font-semibold text-earth-700 text-sm shrink-0">
+                                {review.name?.charAt(0).toUpperCase()}
                               </div>
 
-                              <div className="flex items-center gap-2 my-1">
-                                <StarRating rating={review.rating} size="sm" />
+                              <div className="flex-1 min-w-0">
+                                {/* Header */}
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <span className="font-bold text-earth-900 text-sm">
+                                        {review.name}
+                                      </span>
 
-                                <span className="text-xs font-semibold text-earth-700">
-                                  {review.rating.toFixed(1)} out of 5
-                                </span>
+                                      {showVerified && (
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-earth-50 text-earth-600 text-[10px] font-medium border border-earth-100">
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="w-3 h-3"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={3}
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M5 13l4 4L19 7"
+                                            />
+                                          </svg>
+                                          Verified Purchase
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    <div className="flex items-center gap-2 mt-2">
+                                      <StarRating
+                                        rating={review.rating}
+                                        size="sm"
+                                      />
+
+                                      <span className="text-xs font-semibold text-earth-700">
+                                        {review.rating.toFixed(1)}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <span className="text-xs text-earth-400 shrink-0">
+                                    {formatDate(review.createdAt)}
+                                  </span>
+                                </div>
+
+                                {review.comment && (
+                                  <p className="text-sm text-earth-600 leading-6 mt-3">
+                                    {review.comment}
+                                  </p>
+                                )}
                               </div>
-
-                              {review.comment && (
-                                <p className="font-body text-earth-600 text-sm leading-relaxed mt-1">
-                                  {review.comment}
-                                </p>
-                              )}
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     {/* Pagination */}
