@@ -1,37 +1,38 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
-import { useAuth } from '../../context/AuthContext';
-import { getErrorMessage } from '../../utils';
-import toast from 'react-hot-toast';
-import { transformImage } from '../../utils/imageTransform';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
+import { useAuth } from "../../context/AuthContext";
+import { getErrorMessage } from "../../utils";
+import toast from "react-hot-toast";
+import { transformImage } from "../../utils/imageTransform";
 
 const ComboCard = ({ combo }) => {
   const { user } = useAuth();
   const { addComboToCart } = useCart();
   const navigate = useNavigate();
 
-  const [adding, setAdding]     = useState(false);
+  const [adding, setAdding] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const image =
-    combo.images?.[0] ||
-    combo.products?.[0]?.product?.images?.[0] ||
-    null;
+    combo.images?.[0] || combo.products?.[0]?.product?.images?.[0] || null;
 
-  const discountPercent = combo.discountPercent ?? (
-    combo.originalPrice && combo.originalPrice > combo.price
-      ? Math.round(((combo.originalPrice - combo.price) / combo.originalPrice) * 100)
-      : 0
-  );
+  const discountPercent =
+    combo.discountPercent ??
+    (combo.originalPrice && combo.originalPrice > combo.price
+      ? Math.round(
+          ((combo.originalPrice - combo.price) / combo.originalPrice) * 100,
+        )
+      : 0);
 
-  const savings = combo.originalPrice
-    ? combo.originalPrice - combo.price
-    : 0;
+  const savings = combo.originalPrice ? combo.originalPrice - combo.price : 0;
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
-    if (!user) { navigate('/login'); return; }
+    if (!user) {
+      navigate("/login");
+      return;
+    }
     try {
       setAdding(true);
       await addComboToCart(combo._id, 1);
@@ -61,7 +62,7 @@ const ComboCard = ({ combo }) => {
             alt={combo.name}
             onLoad={() => setImgLoaded(true)}
             className={`aspect-[1.1] sm:aspect-[1.02] w-full object-cover transition-all duration-700
-            ${imgLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}
+            ${imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"}
             group-hover:scale-105`}
           />
         ) : (
@@ -88,7 +89,10 @@ const ComboCard = ({ combo }) => {
         {/* Desktop hover buttons */}
         <div className="hidden sm:flex absolute bottom-3 left-3 right-3 gap-2 opacity-0 group-hover:opacity-100 transition duration-300">
           <button
-            onClick={(e) => { e.preventDefault(); navigate(`/combos/${combo.slug}`); }}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/combos/${combo.slug}`);
+            }}
             className="flex-1 rounded-full bg-earth-950 py-2 text-xs font-semibold text-white"
           >
             View
@@ -98,18 +102,17 @@ const ComboCard = ({ combo }) => {
             disabled={adding}
             className="flex-1 rounded-full bg-brand-600 py-2 text-xs font-semibold text-white"
           >
-            {adding ? '...' : 'Add'}
+            {adding ? "..." : "Add"}
           </button>
         </div>
       </div>
 
       {/* Content */}
       <div className="px-3 pt-1.5 pb-2.5">
-        <h3 className="text-[14px] sm:text-[15px] font-medium text-[#b4532a] leading-[1.2] line-clamp-2 min-h-[28px]">
+        <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#b4532a] leading-[1.2] line-clamp-2 min-h-[28px]">
           {combo.name}
         </h3>
-
-        <p className="text-[11px] text-earth-500 mt-[2px]">
+        <p className="text-[11px] font-medium text-earth-700 mt-[2px]">
           {combo.products?.length ?? 0} items included
         </p>
 
@@ -131,7 +134,10 @@ const ComboCard = ({ combo }) => {
           </div>
 
           <button
-            onClick={(e) => { e.preventDefault(); navigate(`/combos/${combo.slug}`); }}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(`/combos/${combo.slug}`);
+            }}
             className="flex h-8 w-8 items-center justify-center rounded-full border border-earth-200 bg-earth-50 text-earth-800 transition-all duration-300 hover:bg-earth-950 hover:text-white"
           >
             →

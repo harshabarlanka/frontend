@@ -103,7 +103,7 @@ const ProductCard = ({ product }) => {
       {/* Content */}
       <div className="px-3 pt-1.5 pb-2.5">
         {/* Title */}
-        <h3 className="text-[14px] sm:text-[15px] font-medium text-[#b4532a] leading-[1.2] line-clamp-2 min-h-[28px]">
+        <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#b4532a] leading-[1.2] line-clamp-2 min-h-[28px]">
           {product.name}
         </h3>
 
