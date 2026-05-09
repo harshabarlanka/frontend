@@ -10,6 +10,7 @@ import {
 } from "../utils";
 import { PageLoader } from "../components/common/Loader";
 import ErrorState from "../components/common/ErrorState";
+import ReviewModal from "../components/review/ReviewModal";
 import toast from "react-hot-toast";
 import { transformImage } from "../utils/imageTransform";
 
@@ -37,6 +38,8 @@ const OrderDetailPage = () => {
   const [error, setError] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [trackLoading, setTrackLoading] = useState(false);
+  const [reviewModal, setReviewModal] = useState(null); // { item }
+  const [reviewedItems, setReviewedItems] = useState({}); // productId → review data
 
   const fetchOrder = async () => {
     try {
@@ -264,38 +267,79 @@ const OrderDetailPage = () => {
                 Items Ordered ({order.items?.length})
               </h2>
               <div className="divide-y divide-earth-100">
-                {order.items?.map((item, i) => (
-                  <div
-                    key={item._id || i}
-                    className="flex gap-4 py-4 first:pt-0 last:pb-0"
-                  >
-                    <div className="w-16 h-16 rounded-xl bg-earth-100 overflow-hidden flex items-center justify-center text-2xl flex-shrink-0">
-                      {item.image ? (
-                        <img
-                          src={transformImage(item.image)}
-                          alt={item.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        "🫙"
+                {order.items?.map((item, i) => {
+                  const isDelivered = order.status === "delivered";
+                  const isProduct = item.itemType !== "combo";
+                  const reviewed = reviewedItems[item.productId];
+
+                  return (
+                    <div
+                      key={item._id || i}
+                      className="py-4 first:pt-0 last:pb-0"
+                    >
+                      <div className="flex gap-4">
+                        <div className="w-16 h-16 rounded-xl bg-earth-100 overflow-hidden flex items-center justify-center text-2xl flex-shrink-0">
+                          {item.image ? (
+                            <img
+                              src={transformImage(item.image)}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            "🫙"
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-body font-bold text-earth-900">
+                            {item.name}
+                          </p>
+                          <p className="font-body text-sm text-earth-500">
+                            {item.size}
+                          </p>
+                          <p className="font-body text-sm text-earth-600 mt-1">
+                            {formatPrice(item.price)} × {item.quantity}
+                          </p>
+                        </div>
+                        <p className="font-display font-bold text-earth-900 text-right shrink-0">
+                          {formatPrice(item.price * item.quantity)}
+                        </p>
+                      </div>
+
+                      {/* Review section — only for delivered product items */}
+                      {isDelivered && isProduct && (
+                        <div className="mt-3 ml-20">
+                          {reviewed ? (
+                            <div className="flex flex-col gap-1 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
+                              <div className="flex items-center gap-2">
+                                <div className="flex">
+                                  {[1,2,3,4,5].map((s) => (
+                                    <span key={s} className={`text-sm ${s <= reviewed.rating ? "text-amber-400" : "text-gray-200"}`}>★</span>
+                                  ))}
+                                </div>
+                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+                                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                  Verified Purchase Review Submitted
+                                </span>
+                              </div>
+                              {reviewed.comment && (
+                                <p className="text-xs text-earth-600 italic mt-1">"{reviewed.comment}"</p>
+                              )}
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setReviewModal({ item })}
+                              className="inline-flex items-center gap-2 text-xs font-semibold text-brand-700 border border-brand-300 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                              ✍️ Write a Review
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
-                    <div className="flex-1">
-                      <p className="font-body font-bold text-earth-900">
-                        {item.name}
-                      </p>
-                      <p className="font-body text-sm text-earth-500">
-                        {item.size}
-                      </p>
-                      <p className="font-body text-sm text-earth-600 mt-1">
-                        {formatPrice(item.price)} × {item.quantity}
-                      </p>
-                    </div>
-                    <p className="font-display font-bold text-earth-900 text-right">
-                      {formatPrice(item.price * item.quantity)}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -428,6 +472,27 @@ const OrderDetailPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {reviewModal && (
+        <ReviewModal
+          isOpen={!!reviewModal}
+          onClose={() => setReviewModal(null)}
+          productId={reviewModal.item.productId}
+          productName={reviewModal.item.name}
+          productImage={reviewModal.item.image ? transformImage(reviewModal.item.image) : null}
+          variantId={reviewModal.item.variantId}
+          variantSize={reviewModal.item.size}
+          orderId={order._id}
+          onSuccess={(review) => {
+            setReviewedItems((prev) => ({
+              ...prev,
+              [reviewModal.item.productId]: review,
+            }));
+            setReviewModal(null);
+          }}
+        />
+      )}
     </div>
   );
 };

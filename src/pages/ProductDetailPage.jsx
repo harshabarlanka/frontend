@@ -7,6 +7,7 @@ import { PageLoader } from "../components/common/Loader";
 import StarRating from "../components/common/StarRating";
 import Badge from "../components/common/Badge";
 import ErrorState from "../components/common/ErrorState";
+import ReviewModal from "../components/review/ReviewModal";
 import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import toast from "react-hot-toast";
 import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
@@ -29,11 +30,9 @@ const ProductDetailPage = () => {
   const [selectedImg, setSelectedImg] = useState(0);
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
-  const [reviewRating, setReviewRating] = useState(0);
-  const [reviewText, setReviewText] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
   const [reviewPage, setReviewPage] = useState(1);
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   const REVIEWS_PER_PAGE = 3;
   useEffect(() => {
@@ -102,36 +101,6 @@ const ProductDetailPage = () => {
     }
   };
 
-  const handleReviewSubmit = async (e) => {
-    e.preventDefault();
-    if (!user) {
-      navigate("/login");
-      return;
-    }
-    if (reviewRating === 0) {
-      toast.error("Please select a rating.");
-      return;
-    }
-    try {
-      setSubmitting(true);
-      await addReviewAPI(product._id, {
-        rating: reviewRating,
-        comment: reviewText,
-      });
-      toast.success("Review submitted!");
-      setReviewRating(0);
-      setReviewText("");
-      const { data } = isObjectId(slug)
-        ? await api.get(`/products/id/${slug}`)
-        : await getProductAPI(slug);
-      setProduct(data.data.product);
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const images = product.images?.length > 0 ? product.images : [null];
   const avgRating = product.ratings?.average || 0;
   const reviewCount = product.ratings?.count || 0;
@@ -143,16 +112,19 @@ const ProductDetailPage = () => {
     (reviewPage - 1) * REVIEWS_PER_PAGE,
     reviewPage * REVIEWS_PER_PAGE,
   );
-  const isVerifiedReview = (review) => {
-    if (typeof review.verifiedPurchase === "boolean") {
-      return review.verifiedPurchase;
-    }
 
-    // Stable fake 50% verification
-    const id = review._id?.toString() || "";
+  const userHasReviewed = user
+    ? reviews.some((r) => r.userId?._id === user._id || r.userId === user._id)
+    : false;
 
-    return parseInt(id.slice(-2), 16) % 2 === 0;
-  };
+  // Rating breakdown
+  const ratingBreakdown = [5, 4, 3, 2, 1].map((star) => ({
+    star,
+    count: reviews.filter((r) => r.rating === star).length,
+    pct: reviews.length
+      ? Math.round((reviews.filter((r) => r.rating === star).length / reviews.length) * 100)
+      : 0,
+  }));
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">
       <div className="page-container">
@@ -465,60 +437,65 @@ const ProductDetailPage = () => {
             {/* Reviews */}
             {activeTab === "reviews" && (
               <div className="space-y-8 animate-fade-in">
-                {/* Rating summary bar */}
+                {/* Rating Summary */}
                 {reviewCount > 0 && (
-                  <div className="flex items-center gap-5 p-5 bg-earth-50 rounded-2xl">
-                    <div className="text-center">
-                      <p className="text-5xl font-bold text-earth-900">
+                  <div className="flex flex-col sm:flex-row gap-6 p-5 bg-earth-50 rounded-2xl">
+                    {/* Score */}
+                    <div className="flex flex-col items-center justify-center min-w-[120px] border-b sm:border-b-0 sm:border-r border-earth-200 pb-4 sm:pb-0 sm:pr-6">
+                      <p className="text-6xl font-bold text-earth-900 leading-none">
                         {avgRating.toFixed(1)}
                       </p>
                       <StarRating
                         rating={avgRating}
                         size="md"
-                        className="justify-center mt-1"
+                        className="justify-center mt-2"
                       />
-                      <p className="text-sm text-earth-500 mt-1">out of 5</p>
+                      <p className="text-xs text-earth-500 mt-1">
+                        {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
+                      </p>
                     </div>
-                    <div className="flex-1 text-sm text-earth-500">
-                      {reviewCount} {reviewCount === 1 ? "review" : "reviews"}
+                    {/* Bar breakdown */}
+                    <div className="flex-1 space-y-1.5">
+                      {ratingBreakdown.map(({ star, count, pct }) => (
+                        <div key={star} className="flex items-center gap-2 text-xs">
+                          <span className="text-earth-600 w-3 text-right font-semibold">{star}</span>
+                          <span className="text-amber-400 text-sm">★</span>
+                          <div className="flex-1 h-2 bg-earth-200 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="text-earth-500 w-6 text-right">{count}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {/* Review form */}
+                {/* Write Review CTA */}
                 {user ? (
-                  <div className="card p-6 bg-earth-50">
-                    <h3 className="font-display font-bold text-earth-900 text-lg mb-4">
-                      Write a Review
-                    </h3>
-                    <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  userHasReviewed ? (
+                    <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">✓</div>
+                      <p className="font-body text-sm text-emerald-700 font-semibold">
+                        You've already reviewed this product. Thank you!
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-4 p-5 bg-earth-50 border border-earth-200 rounded-xl">
                       <div>
-                        <label className="font-body text-sm font-bold text-earth-700 mb-2 block">
-                          Your Rating
-                        </label>
-                        <StarRating
-                          interactive
-                          rating={reviewRating}
-                          size="lg"
-                          onRate={setReviewRating}
-                        />
+                        <p className="font-body font-bold text-earth-900 text-sm">Share your experience</p>
+                        <p className="font-body text-xs text-earth-500 mt-0.5">Help other customers make better choices</p>
                       </div>
-                      <textarea
-                        value={reviewText}
-                        onChange={(e) => setReviewText(e.target.value)}
-                        placeholder="Tell us about this pickle…"
-                        rows={3}
-                        className="input-field resize-none"
-                      />
                       <button
-                        type="submit"
-                        disabled={submitting || reviewRating === 0}
-                        className="btn-primary text-sm"
+                        onClick={() => setReviewModalOpen(true)}
+                        className="btn-primary text-sm py-2.5 px-5 whitespace-nowrap"
                       >
-                        {submitting ? "Submitting…" : "Submit Review"}
+                        ✍️ Write a Review
                       </button>
-                    </form>
-                  </div>
+                    </div>
+                  )
                 ) : (
                   <div className="text-center py-8 bg-earth-50 rounded-xl">
                     <p className="font-body text-earth-600 mb-3">
@@ -531,122 +508,92 @@ const ProductDetailPage = () => {
                 )}
 
                 {/* Existing reviews */}
-                {product.reviews?.length > 0 ? (
+                {reviews.length > 0 ? (
                   <>
                     <div className="space-y-4">
-                      {paginatedReviews.map((review, idx) => {
-                        const showVerified =
-                          review.name?.charCodeAt(0) % 3 !== 0;
+                      {paginatedReviews.map((review, idx) => (
+                        <div
+                          key={review._id || idx}
+                          className="bg-white rounded-2xl p-4 sm:p-5 border border-earth-100 shadow-sm hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Avatar */}
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-500 to-spice-600 flex items-center justify-center font-bold text-white text-sm shrink-0">
+                              {review.name?.charAt(0).toUpperCase()}
+                            </div>
 
-                        return (
-                          <div
-                            key={idx}
-                            className="bg-white rounded-2xl p-4 sm:p-5 border border-earth-100"
-                          >
-                            <div className="flex items-start gap-2.5">
-                              {/* Avatar */}
-                              <div className="w-9 h-9 rounded-full bg-earth-100 flex items-center justify-center font-semibold text-earth-700 text-sm shrink-0">
-                                {review.name?.charAt(0).toUpperCase()}
-                              </div>
-
-                              <div className="flex-1 min-w-0">
-                                {/* Header */}
-                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <div className="flex flex-wrap items-center gap-2">
-                                      <span className="font-bold text-earth-900 text-sm">
-                                        {review.name}
+                            <div className="flex-1 min-w-0">
+                              {/* Header row */}
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
+                                <div>
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <span className="font-bold text-earth-900 text-sm">
+                                      {review.name}
+                                    </span>
+                                    {review.verifiedPurchase && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
+                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                        Verified Purchase
                                       </span>
-
-                                      {showVerified && (
-                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-earth-50 text-earth-600 text-[10px] font-medium border border-earth-100">
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="w-3 h-3"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth={3}
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              d="M5 13l4 4L19 7"
-                                            />
-                                          </svg>
-                                          Verified Purchase
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    <div className="flex items-center gap-2 mt-2">
-                                      <StarRating
-                                        rating={review.rating}
-                                        size="sm"
-                                      />
-
-                                      <span className="text-xs font-semibold text-earth-700">
-                                        {review.rating.toFixed(1)}
-                                      </span>
-                                    </div>
+                                    )}
                                   </div>
-
-                                  <span className="text-xs text-earth-400 shrink-0">
-                                    {formatDate(review.createdAt)}
-                                  </span>
+                                  <div className="flex items-center gap-2 mt-1.5">
+                                    <div className="flex">
+                                      {[1,2,3,4,5].map((s) => (
+                                        <span key={s} className={`text-base ${s <= review.rating ? "text-amber-400" : "text-gray-200"}`}>★</span>
+                                      ))}
+                                    </div>
+                                    <span className="text-xs font-bold text-earth-700">
+                                      {review.rating.toFixed(1)}
+                                    </span>
+                                  </div>
                                 </div>
-
-                                {review.comment && (
-                                  <p className="text-sm text-earth-600 leading-6 mt-3">
-                                    {review.comment}
-                                  </p>
-                                )}
+                                <span className="text-xs text-earth-400 shrink-0 sm:mt-0.5">
+                                  {formatDate(review.createdAt)}
+                                </span>
                               </div>
+
+                              {review.comment && (
+                                <p className="text-sm text-earth-700 leading-relaxed mt-3">
+                                  {review.comment}
+                                </p>
+                              )}
                             </div>
                           </div>
-                        );
-                      })}
+                        </div>
+                      ))}
                     </div>
 
                     {/* Pagination */}
                     {totalReviewPages > 1 && (
-                      <div className="flex flex-wrap items-center justify-center gap-2 pt-6">
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
                         <button
-                          onClick={() =>
-                            setReviewPage((p) => Math.max(1, p - 1))
-                          }
+                          onClick={() => setReviewPage((p) => Math.max(1, p - 1))}
                           disabled={reviewPage === 1}
                           className="px-4 py-2 rounded-xl border border-earth-200 bg-white text-sm font-semibold text-earth-700 transition-all hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           Prev
                         </button>
-
-                        {Array.from({ length: totalReviewPages }).map(
-                          (_, idx) => {
-                            const page = idx + 1;
-
-                            return (
-                              <button
-                                key={page}
-                                onClick={() => setReviewPage(page)}
-                                className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
-                                  reviewPage === page
-                                    ? "bg-brand-600 text-white shadow-md"
-                                    : "bg-white border border-earth-200 text-earth-700 hover:border-brand-400"
-                                }`}
-                              >
-                                {page}
-                              </button>
-                            );
-                          },
-                        )}
-
+                        {Array.from({ length: totalReviewPages }).map((_, idx) => {
+                          const page = idx + 1;
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setReviewPage(page)}
+                              className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                                reviewPage === page
+                                  ? "bg-brand-600 text-white shadow-md"
+                                  : "bg-white border border-earth-200 text-earth-700 hover:border-brand-400"
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
                         <button
-                          onClick={() =>
-                            setReviewPage((p) =>
-                              Math.min(totalReviewPages, p + 1),
-                            )
-                          }
+                          onClick={() => setReviewPage((p) => Math.min(totalReviewPages, p + 1))}
                           disabled={reviewPage === totalReviewPages}
                           className="px-4 py-2 rounded-xl border border-earth-200 bg-white text-sm font-semibold text-earth-700 transition-all hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
@@ -668,6 +615,26 @@ const ProductDetailPage = () => {
         {/* You May Also Like */}
         {product && <YouMayAlsoLike excludeIds={[product._id]} />}
       </div>
+
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={reviewModalOpen}
+        onClose={() => setReviewModalOpen(false)}
+        productId={product._id}
+        productName={product.name}
+        productImage={product.images?.[0] ? transformImage(product.images[0]) : null}
+        variantId={variant?._id}
+        variantSize={variant?.size}
+        onSuccess={async () => {
+          // Reload product to get fresh reviews
+          try {
+            const { data } = isObjectId(slug)
+              ? await api.get(`/products/id/${slug}`)
+              : await getProductAPI(slug);
+            setProduct(data.data.product);
+          } catch {}
+        }}
+      />
     </div>
   );
 };

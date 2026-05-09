@@ -6,6 +6,7 @@ import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import { InlineLoader } from "../components/common/Loader";
 import EmptyState from "../components/common/EmptyState";
 import ErrorState from "../components/common/ErrorState";
+import ReviewModal from "../components/review/ReviewModal";
 import toast from "react-hot-toast";
 import { transformImage } from "../utils/imageTransform";
 
@@ -135,6 +136,9 @@ const OrderCard = ({ order }) => {
     label: order.status,
     color: "bg-gray-100 text-gray-700",
   };
+  const [reviewModal, setReviewModal] = useState(null);
+  const [reviewedItems, setReviewedItems] = useState({});
+  const isDelivered = order.status === "delivered";
 
   return (
     <div className="card p-5 hover:shadow-md transition-shadow animate-slide-up">
@@ -202,6 +206,37 @@ const OrderCard = ({ order }) => {
         <OrderProgressBar status={order.status} />
       )}
 
+      {/* Delivered: per-item review CTAs */}
+      {isDelivered && (
+        <div className="mt-4 pt-4 border-t border-earth-100">
+          <p className="text-xs font-bold text-earth-500 uppercase tracking-wide mb-2">Rate your items</p>
+          <div className="flex flex-wrap gap-2">
+            {order.items?.filter((item) => item.itemType !== "combo").map((item, i) => {
+              const reviewed = reviewedItems[item.productId];
+              return (
+                <div key={item._id || i} className="flex items-center gap-1.5">
+                  {reviewed ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      {item.name.length > 16 ? item.name.slice(0, 16) + "…" : item.name} reviewed
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setReviewModal({ item })}
+                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-700 border border-brand-300 bg-white hover:bg-brand-50 px-2.5 py-1 rounded-full transition-colors"
+                    >
+                      ✍️ {item.name.length > 14 ? item.name.slice(0, 14) + "…" : item.name}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="flex gap-3 mt-4 pt-4 border-t border-earth-100">
         <Link
@@ -219,6 +254,27 @@ const OrderCard = ({ order }) => {
           </Link>
         )}
       </div>
+
+      {/* Review Modal */}
+      {reviewModal && (
+        <ReviewModal
+          isOpen={!!reviewModal}
+          onClose={() => setReviewModal(null)}
+          productId={reviewModal.item.productId}
+          productName={reviewModal.item.name}
+          productImage={reviewModal.item.image ? transformImage(reviewModal.item.image) : null}
+          variantId={reviewModal.item.variantId}
+          variantSize={reviewModal.item.size}
+          orderId={order._id}
+          onSuccess={(review) => {
+            setReviewedItems((prev) => ({
+              ...prev,
+              [reviewModal.item.productId]: review,
+            }));
+            setReviewModal(null);
+          }}
+        />
+      )}
     </div>
   );
 };
