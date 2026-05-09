@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { getProductAPI, addReviewAPI } from "../api/product.api";
+import { getProductAPI } from "../api/product.api";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { PageLoader } from "../components/common/Loader";
 import StarRating from "../components/common/StarRating";
 import Badge from "../components/common/Badge";
 import ErrorState from "../components/common/ErrorState";
-import ReviewModal from "../components/review/ReviewModal";
+import InlineReviewSection from "../components/review/InlineReviewSection";
 import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import toast from "react-hot-toast";
 import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
@@ -32,7 +32,6 @@ const ProductDetailPage = () => {
   const [adding, setAdding] = useState(false);
   const [activeTab, setActiveTab] = useState("description");
   const [reviewPage, setReviewPage] = useState(1);
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
 
   const REVIEWS_PER_PAGE = 3;
   useEffect(() => {
@@ -113,9 +112,9 @@ const ProductDetailPage = () => {
     reviewPage * REVIEWS_PER_PAGE,
   );
 
-  const userHasReviewed = user
-    ? reviews.some((r) => r.userId?._id === user._id || r.userId === user._id)
-    : false;
+  const userReview = user
+    ? reviews.find((r) => r.userId?._id === user._id || r.userId === user._id) || null
+    : null;
 
   // Rating breakdown
   const ratingBreakdown = [5, 4, 3, 2, 1].map((star) => ({
@@ -473,29 +472,33 @@ const ProductDetailPage = () => {
                   </div>
                 )}
 
-                {/* Write Review CTA */}
+                {/* ── Your Review ── always visible inline */}
                 {user ? (
-                  userHasReviewed ? (
-                    <div className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
-                      <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-sm">✓</div>
-                      <p className="font-body text-sm text-emerald-700 font-semibold">
-                        You've already reviewed this product. Thank you!
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between gap-4 p-5 bg-earth-50 border border-earth-200 rounded-xl">
-                      <div>
-                        <p className="font-body font-bold text-earth-900 text-sm">Share your experience</p>
-                        <p className="font-body text-xs text-earth-500 mt-0.5">Help other customers make better choices</p>
-                      </div>
-                      <button
-                        onClick={() => setReviewModalOpen(true)}
-                        className="btn-primary text-sm py-2.5 px-5 whitespace-nowrap"
-                      >
-                        ✍️ Write a Review
-                      </button>
-                    </div>
-                  )
+                  <InlineReviewSection
+                    productId={product._id}
+                    productName={product.name}
+                    variantId={variant?._id}
+                    variantSize={variant?.size}
+                    existingReview={
+                      userReview
+                        ? {
+                            rating: userReview.rating,
+                            comment: userReview.comment || "",
+                            verifiedPurchase: userReview.verifiedPurchase,
+                            createdAt: userReview.createdAt,
+                          }
+                        : null
+                    }
+                    isDelivered={userReview?.verifiedPurchase ?? false}
+                    onReviewSubmit={async () => {
+                      try {
+                        const { data } = isObjectId(slug)
+                          ? await api.get(`/products/id/${slug}`)
+                          : await getProductAPI(slug);
+                        setProduct(data.data.product);
+                      } catch {}
+                    }}
+                  />
                 ) : (
                   <div className="text-center py-8 bg-earth-50 rounded-xl">
                     <p className="font-body text-earth-600 mb-3">
@@ -615,26 +618,6 @@ const ProductDetailPage = () => {
         {/* You May Also Like */}
         {product && <YouMayAlsoLike excludeIds={[product._id]} />}
       </div>
-
-      {/* Review Modal */}
-      <ReviewModal
-        isOpen={reviewModalOpen}
-        onClose={() => setReviewModalOpen(false)}
-        productId={product._id}
-        productName={product.name}
-        productImage={product.images?.[0] ? transformImage(product.images[0]) : null}
-        variantId={variant?._id}
-        variantSize={variant?.size}
-        onSuccess={async () => {
-          // Reload product to get fresh reviews
-          try {
-            const { data } = isObjectId(slug)
-              ? await api.get(`/products/id/${slug}`)
-              : await getProductAPI(slug);
-            setProduct(data.data.product);
-          } catch {}
-        }}
-      />
     </div>
   );
 };

@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getMyOrdersAPI } from "../api/order.api";
+import { getMyReviewsAPI } from "../api/product.api";
 import { ORDER_STATUSES } from "../constants/constants_index";
 import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import { InlineLoader } from "../components/common/Loader";
 import EmptyState from "../components/common/EmptyState";
 import ErrorState from "../components/common/ErrorState";
-import ReviewModal from "../components/review/ReviewModal";
-import toast from "react-hot-toast";
+import InlineReviewSection from "../components/review/InlineReviewSection";
+import { useAuth } from "../context/AuthContext";
 import { transformImage } from "../utils/imageTransform";
 
 const statusFilters = [
@@ -21,12 +22,27 @@ const statusFilters = [
 ];
 
 const OrdersPage = () => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  // Global map of productId → existing review for the logged-in user
+  const [myReviewMap, setMyReviewMap] = useState({});
+  const [reviewsLoaded, setReviewsLoaded] = useState(false);
+
+  // Load the user's existing reviews once on mount
+  useEffect(() => {
+    if (!user) return;
+    getMyReviewsAPI()
+      .then(({ data }) => {
+        setMyReviewMap(data.data.reviewMap || {});
+      })
+      .catch(() => {}) // non-critical — fail silently
+      .finally(() => setReviewsLoaded(true));
+  }, [user]);
 
   const fetchOrders = async (pg = 1, status = statusFilter) => {
     try {
@@ -49,6 +65,10 @@ const OrdersPage = () => {
     fetchOrders(1, statusFilter);
   }, [statusFilter]);
 
+  const handleReviewSubmit = (productId, review) => {
+    setMyReviewMap((prev) => ({ ...prev, [productId]: review }));
+  };
+
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">
       <div className="page-container">
@@ -59,7 +79,6 @@ const OrdersPage = () => {
           </p>
         </div>
 
-        {/* Status filter tabs */}
         <div className="flex gap-2 overflow-x-auto no-scrollbar mb-8 pb-0">
           {statusFilters.map((s) => (
             <button
@@ -99,10 +118,15 @@ const OrdersPage = () => {
         {!loading && !error && orders.length > 0 && (
           <div className="space-y-4">
             {orders.map((order) => (
-              <OrderCard key={order._id} order={order} />
+              <OrderCard
+                key={order._id}
+                order={order}
+                myReviewMap={myReviewMap}
+                reviewsLoaded={reviewsLoaded}
+                onReviewSubmit={handleReviewSubmit}
+              />
             ))}
 
-            {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex justify-center gap-2 pt-4">
                 <button
@@ -131,14 +155,14 @@ const OrdersPage = () => {
   );
 };
 
-const OrderCard = ({ order }) => {
+const OrderCard = ({ order, myReviewMap, reviewsLoaded, onReviewSubmit }) => {
   const statusInfo = ORDER_STATUSES[order.status] || {
     label: order.status,
     color: "bg-gray-100 text-gray-700",
   };
-  const [reviewModal, setReviewModal] = useState(null);
-  const [reviewedItems, setReviewedItems] = useState({});
   const isDelivered = order.status === "delivered";
+  const reviewableItems =
+    order.items?.filter((item) => item.itemType !== "combo" && item.productId) || [];
 
   return (
     <div className="card p-5 hover:shadow-md transition-shadow animate-slide-up">
@@ -169,7 +193,6 @@ const OrderCard = ({ order }) => {
         </div>
       </div>
 
-      {/* Items preview */}
       <div className="flex gap-3 mb-4 overflow-hidden">
         {order.items?.slice(0, 4).map((item, i) => (
           <div
@@ -196,53 +219,53 @@ const OrderCard = ({ order }) => {
         )}
       </div>
 
-      {/* Item names */}
       <p className="font-body text-sm text-earth-600 mb-4 line-clamp-1">
         {order.items?.map((i) => `${i.name} (${i.size})`).join(", ")}
       </p>
 
-      {/* Progress stepper */}
       {order.status !== "cancelled" && order.status !== "refunded" && (
         <OrderProgressBar status={order.status} />
       )}
 
-      {/* Delivered: per-item review CTAs */}
-      {isDelivered && (
-        <div className="mt-4 pt-4 border-t border-earth-100">
-          <p className="text-xs font-bold text-earth-500 uppercase tracking-wide mb-2">Rate your items</p>
-          <div className="flex flex-wrap gap-2">
-            {order.items?.filter((item) => item.itemType !== "combo").map((item, i) => {
-              const reviewed = reviewedItems[item.productId];
-              return (
-                <div key={item._id || i} className="flex items-center gap-1.5">
-                  {reviewed ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      {item.name.length > 16 ? item.name.slice(0, 16) + "…" : item.name} reviewed
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => setReviewModal({ item })}
-                      className="inline-flex items-center gap-1 text-[11px] font-semibold text-brand-700 border border-brand-300 bg-white hover:bg-brand-50 px-2.5 py-1 rounded-full transition-colors"
-                    >
-                      ✍️ {item.name.length > 14 ? item.name.slice(0, 14) + "…" : item.name}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+      {/* ── Per-item review sections — always visible ── */}
+      {reviewableItems.length > 0 && (
+        <div className="mt-4 pt-4 border-t border-earth-100 space-y-3">
+          <p className="text-xs font-bold text-earth-500 uppercase tracking-wide">
+            {isDelivered ? "Your Reviews" : "Reviews"}
+          </p>
+          {reviewableItems.map((item, i) => {
+            const productId = item.productId?.toString?.() || item.productId;
+            const existingReview = myReviewMap[productId] || null;
+
+            return (
+              <div key={item._id || i} className="space-y-1.5">
+                <p className="text-[11px] font-semibold text-earth-600 truncate">
+                  {item.name}
+                  {item.size ? ` · ${item.size}` : ""}
+                </p>
+                {reviewsLoaded ? (
+                  <InlineReviewSection
+                    productId={productId}
+                    productName={item.name}
+                    variantId={item.variantId}
+                    variantSize={item.size}
+                    orderId={isDelivered ? order._id : undefined}
+                    isDelivered={isDelivered}
+                    existingReview={existingReview}
+                    onReviewSubmit={(review) => onReviewSubmit(productId, review)}
+                    compact
+                  />
+                ) : (
+                  <div className="h-16 rounded-xl bg-earth-100 animate-pulse" />
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex gap-3 mt-4 pt-4 border-t border-earth-100">
-        <Link
-          to={`/orders/${order._id}`}
-          className="btn-secondary text-sm py-2 px-4"
-        >
+        <Link to={`/orders/${order._id}`} className="btn-secondary text-sm py-2 px-4">
           View Details
         </Link>
         {order.awbCode && (
@@ -254,39 +277,12 @@ const OrderCard = ({ order }) => {
           </Link>
         )}
       </div>
-
-      {/* Review Modal */}
-      {reviewModal && (
-        <ReviewModal
-          isOpen={!!reviewModal}
-          onClose={() => setReviewModal(null)}
-          productId={reviewModal.item.productId}
-          productName={reviewModal.item.name}
-          productImage={reviewModal.item.image ? transformImage(reviewModal.item.image) : null}
-          variantId={reviewModal.item.variantId}
-          variantSize={reviewModal.item.size}
-          orderId={order._id}
-          onSuccess={(review) => {
-            setReviewedItems((prev) => ({
-              ...prev,
-              [reviewModal.item.productId]: review,
-            }));
-            setReviewModal(null);
-          }}
-        />
-      )}
     </div>
   );
 };
 
 const STEPS = ["Confirmed", "Packed", "Shipped", "Delivered"];
-const STATUS_STEP = {
-  pending: 0,
-  confirmed: 1,
-  packed: 2,
-  shipped: 3,
-  delivered: 4,
-};
+const STATUS_STEP = { pending: 0, confirmed: 1, packed: 2, shipped: 3, delivered: 4 };
 
 const OrderProgressBar = ({ status }) => {
   const current = STATUS_STEP[status] ?? 0;
@@ -309,15 +305,11 @@ const OrderProgressBar = ({ status }) => {
             >
               {done ? "✓" : stepNum}
             </div>
-            <p
-              className={`hidden sm:block font-body text-xs ml-1 mr-1 ${done || active ? "text-earth-700 font-bold" : "text-earth-400"}`}
-            >
+            <p className={`hidden sm:block font-body text-xs ml-1 mr-1 ${done || active ? "text-earth-700 font-bold" : "text-earth-400"}`}>
               {step}
             </p>
             {i < STEPS.length - 1 && (
-              <div
-                className={`flex-1 h-0.5 mx-1 ${current > stepNum ? "bg-leaf-400" : "bg-earth-200"}`}
-              />
+              <div className={`flex-1 h-0.5 mx-1 ${current > stepNum ? "bg-leaf-400" : "bg-earth-200"}`} />
             )}
           </div>
         );

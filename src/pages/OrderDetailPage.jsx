@@ -1,16 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getOrderAPI, cancelOrderAPI, trackOrderAPI } from "../api/order.api";
+import { getMyReviewsAPI } from "../api/product.api";
 import { ORDER_STATUSES } from "../constants/constants_index";
-import {
-  formatPrice,
-  formatDate,
-  formatDateTime,
-  getErrorMessage,
-} from "../utils";
+import { formatPrice, formatDate, formatDateTime, getErrorMessage } from "../utils";
 import { PageLoader } from "../components/common/Loader";
 import ErrorState from "../components/common/ErrorState";
-import ReviewModal from "../components/review/ReviewModal";
+import InlineReviewSection from "../components/review/InlineReviewSection";
+import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { transformImage } from "../utils/imageTransform";
 
@@ -20,17 +17,12 @@ const STEPS = [
   { key: "shipped", label: "Shipped", icon: "🚚" },
   { key: "delivered", label: "Delivered", icon: "🏠" },
 ];
-const STEP_INDEX = {
-  pending: 0,
-  confirmed: 1,
-  packed: 2,
-  shipped: 3,
-  delivered: 4,
-};
+const STEP_INDEX = { pending: 0, confirmed: 1, packed: 2, shipped: 3, delivered: 4 };
 
 const OrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [order, setOrder] = useState(null);
   const [tracking, setTracking] = useState(null);
@@ -38,8 +30,9 @@ const OrderDetailPage = () => {
   const [error, setError] = useState(null);
   const [cancelling, setCancelling] = useState(false);
   const [trackLoading, setTrackLoading] = useState(false);
-  const [reviewModal, setReviewModal] = useState(null); // { item }
-  const [reviewedItems, setReviewedItems] = useState({}); // productId → review data
+  // productId → { rating, comment, verifiedPurchase, createdAt }
+  const [myReviewMap, setMyReviewMap] = useState({});
+  const [reviewsLoaded, setReviewsLoaded] = useState(false);
 
   const fetchOrder = async () => {
     try {
@@ -54,9 +47,16 @@ const OrderDetailPage = () => {
     }
   };
 
+  useEffect(() => { fetchOrder(); }, [id]);
+
+  // Load user's reviews in parallel
   useEffect(() => {
-    fetchOrder();
-  }, [id]);
+    if (!user) return;
+    getMyReviewsAPI()
+      .then(({ data }) => setMyReviewMap(data.data.reviewMap || {}))
+      .catch(() => {})
+      .finally(() => setReviewsLoaded(true));
+  }, [user]);
 
   const handleCancel = async () => {
     if (!window.confirm("Are you sure you want to cancel this order?")) return;
@@ -84,6 +84,10 @@ const OrderDetailPage = () => {
     }
   };
 
+  const handleReviewSubmit = (productId, review) => {
+    setMyReviewMap((prev) => ({ ...prev, [productId]: review }));
+  };
+
   if (loading) return <PageLoader />;
   if (error)
     return (
@@ -98,19 +102,15 @@ const OrderDetailPage = () => {
     color: "bg-gray-100 text-gray-700",
   };
   const currentStep = STEP_INDEX[order.status] ?? 0;
-  const isCancellable = ["pending", "confirmed", "packed"].includes(
-    order.status,
-  );
+  const isCancellable = ["pending", "confirmed", "packed"].includes(order.status);
+  const isDelivered = order.status === "delivered";
 
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">
       <div className="page-container">
         {/* Back + header */}
         <div className="mb-6">
-          <button
-            onClick={() => navigate("/orders")}
-            className="btn-ghost text-sm mb-4 pl-0"
-          >
+          <button onClick={() => navigate("/orders")} className="btn-ghost text-sm mb-4 pl-0">
             ← Back to Orders
           </button>
           <div className="flex flex-wrap gap-4 items-start justify-between">
@@ -141,12 +141,10 @@ const OrderDetailPage = () => {
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
-            {/* ── Tracking stepper ──────────────────────────────────── */}
+            {/* ── Tracking stepper ── */}
             {order.status !== "cancelled" && order.status !== "refunded" && (
               <div className="card p-6">
-                <h2 className="font-display font-bold text-earth-900 mb-6">
-                  Order Status
-                </h2>
+                <h2 className="font-display font-bold text-earth-900 mb-6">Order Status</h2>
                 <div className="relative">
                   <div className="absolute top-5 left-5 right-5 h-0.5 bg-earth-100" />
                   <div className="flex justify-between relative">
@@ -154,10 +152,7 @@ const OrderDetailPage = () => {
                       const done = currentStep > i + 1;
                       const active = currentStep === i + 1;
                       return (
-                        <div
-                          key={step.key}
-                          className="flex flex-col items-center flex-1"
-                        >
+                        <div key={step.key} className="flex flex-col items-center flex-1">
                           <div
                             className={`w-10 h-10 rounded-full flex items-center justify-center text-lg z-10 transition-all mb-3 ${
                               done
@@ -169,13 +164,7 @@ const OrderDetailPage = () => {
                           >
                             {done ? "✓" : step.icon}
                           </div>
-                          <p
-                            className={`font-body text-xs text-center font-bold ${
-                              done || active
-                                ? "text-earth-800"
-                                : "text-earth-400"
-                            }`}
-                          >
+                          <p className={`font-body text-xs text-center font-bold ${done || active ? "text-earth-800" : "text-earth-400"}`}>
                             {step.label}
                           </p>
                         </div>
@@ -190,14 +179,11 @@ const OrderDetailPage = () => {
                     <div className="flex flex-wrap gap-3 items-center justify-between">
                       <div>
                         <p className="font-body text-sm text-earth-600">
-                          <span className="font-bold">Courier:</span>{" "}
-                          {order.courierName || "N/A"}
+                          <span className="font-bold">Courier:</span> {order.courierName || "N/A"}
                         </p>
                         <p className="font-body text-sm text-earth-600">
                           <span className="font-bold">AWB:</span>{" "}
-                          <code className="bg-earth-100 px-2 py-0.5 rounded font-mono text-xs">
-                            {order.awbCode}
-                          </code>
+                          <code className="bg-earth-100 px-2 py-0.5 rounded font-mono text-xs">{order.awbCode}</code>
                         </p>
                       </div>
                       <button
@@ -208,7 +194,6 @@ const OrderDetailPage = () => {
                         {trackLoading ? "Fetching…" : "📍 Live Track"}
                       </button>
                     </div>
-
                     {tracking && (
                       <div className="mt-4 bg-earth-50 rounded-xl p-4">
                         <p className="font-body text-sm font-bold text-earth-800 mb-1">
@@ -216,27 +201,19 @@ const OrderDetailPage = () => {
                         </p>
                         {tracking.deliveryDate && (
                           <p className="font-body text-xs text-earth-500">
-                            Expected delivery:{" "}
-                            {formatDate(tracking.deliveryDate)}
+                            Expected delivery: {formatDate(tracking.deliveryDate)}
                           </p>
                         )}
                         {tracking.shipmentTrackActivities?.length > 0 && (
                           <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
-                            {tracking.shipmentTrackActivities
-                              .slice(0, 6)
-                              .map((act, i) => (
-                                <div
-                                  key={i}
-                                  className="flex gap-3 text-xs font-body"
-                                >
-                                  <span className="text-earth-400 flex-shrink-0 whitespace-nowrap">
-                                    {act.date ? formatDateTime(act.date) : "—"}
-                                  </span>
-                                  <span className="text-earth-700">
-                                    {act.activity || act.location || ""}
-                                  </span>
-                                </div>
-                              ))}
+                            {tracking.shipmentTrackActivities.slice(0, 6).map((act, i) => (
+                              <div key={i} className="flex gap-3 text-xs font-body">
+                                <span className="text-earth-400 flex-shrink-0 whitespace-nowrap">
+                                  {act.date ? formatDateTime(act.date) : "—"}
+                                </span>
+                                <span className="text-earth-700">{act.activity || act.location || ""}</span>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -246,37 +223,32 @@ const OrderDetailPage = () => {
               </div>
             )}
 
-            {/* ── Cancelled / Refunded notice ───────────────────────── */}
+            {/* ── Cancelled / Refunded notice ── */}
             {(order.status === "cancelled" || order.status === "refunded") && (
               <div className="card p-5 border-spice-200 bg-spice-50">
                 <p className="font-body text-sm font-bold text-spice-700 mb-1">
-                  {order.status === "cancelled"
-                    ? "❌ Order Cancelled"
-                    : "↩️ Order Refunded"}
+                  {order.status === "cancelled" ? "❌ Order Cancelled" : "↩️ Order Refunded"}
                 </p>
                 <p className="font-body text-sm text-spice-600">
-                  {order.statusHistory?.slice(-1)[0]?.note ||
-                    "This order has been cancelled."}
+                  {order.statusHistory?.slice(-1)[0]?.note || "This order has been cancelled."}
                 </p>
               </div>
             )}
 
-            {/* ── Order items ───────────────────────────────────────── */}
+            {/* ── Order items ── */}
             <div className="card p-6">
               <h2 className="font-display font-bold text-earth-900 mb-4">
                 Items Ordered ({order.items?.length})
               </h2>
               <div className="divide-y divide-earth-100">
                 {order.items?.map((item, i) => {
-                  const isDelivered = order.status === "delivered";
                   const isProduct = item.itemType !== "combo";
-                  const reviewed = reviewedItems[item.productId];
+                  const productId = item.productId?.toString?.() || item.productId;
+                  const existingReview = isProduct ? (myReviewMap[productId] || null) : null;
 
                   return (
-                    <div
-                      key={item._id || i}
-                      className="py-4 first:pt-0 last:pb-0"
-                    >
+                    <div key={item._id || i} className="py-4 first:pt-0 last:pb-0">
+                      {/* Item row */}
                       <div className="flex gap-4">
                         <div className="w-16 h-16 rounded-xl bg-earth-100 overflow-hidden flex items-center justify-center text-2xl flex-shrink-0">
                           {item.image ? (
@@ -290,12 +262,8 @@ const OrderDetailPage = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <p className="font-body font-bold text-earth-900">
-                            {item.name}
-                          </p>
-                          <p className="font-body text-sm text-earth-500">
-                            {item.size}
-                          </p>
+                          <p className="font-body font-bold text-earth-900">{item.name}</p>
+                          <p className="font-body text-sm text-earth-500">{item.size}</p>
                           <p className="font-body text-sm text-earth-600 mt-1">
                             {formatPrice(item.price)} × {item.quantity}
                           </p>
@@ -305,35 +273,22 @@ const OrderDetailPage = () => {
                         </p>
                       </div>
 
-                      {/* Review section — only for delivered product items */}
-                      {isDelivered && isProduct && (
+                      {/* ── Inline review section for every product item ── */}
+                      {isProduct && (
                         <div className="mt-3 ml-20">
-                          {reviewed ? (
-                            <div className="flex flex-col gap-1 p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-                              <div className="flex items-center gap-2">
-                                <div className="flex">
-                                  {[1,2,3,4,5].map((s) => (
-                                    <span key={s} className={`text-sm ${s <= reviewed.rating ? "text-amber-400" : "text-gray-200"}`}>★</span>
-                                  ))}
-                                </div>
-                                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-                                  <svg className="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                  Verified Purchase Review Submitted
-                                </span>
-                              </div>
-                              {reviewed.comment && (
-                                <p className="text-xs text-earth-600 italic mt-1">"{reviewed.comment}"</p>
-                              )}
-                            </div>
+                          {reviewsLoaded ? (
+                            <InlineReviewSection
+                              productId={productId}
+                              productName={item.name}
+                              variantId={item.variantId}
+                              variantSize={item.size}
+                              orderId={isDelivered ? order._id : undefined}
+                              isDelivered={isDelivered}
+                              existingReview={existingReview}
+                              onReviewSubmit={(review) => handleReviewSubmit(productId, review)}
+                            />
                           ) : (
-                            <button
-                              onClick={() => setReviewModal({ item })}
-                              className="inline-flex items-center gap-2 text-xs font-semibold text-brand-700 border border-brand-300 bg-brand-50 hover:bg-brand-100 px-3 py-1.5 rounded-lg transition-colors"
-                            >
-                              ✍️ Write a Review
-                            </button>
+                            <div className="h-20 rounded-xl bg-earth-100 animate-pulse" />
                           )}
                         </div>
                       )}
@@ -343,12 +298,10 @@ const OrderDetailPage = () => {
               </div>
             </div>
 
-            {/* ── Status history ────────────────────────────────────── */}
+            {/* ── Status history ── */}
             {order.statusHistory?.length > 0 && (
               <div className="card p-6">
-                <h2 className="font-display font-bold text-earth-900 mb-4">
-                  Activity Log
-                </h2>
+                <h2 className="font-display font-bold text-earth-900 mb-4">Activity Log</h2>
                 <div className="space-y-3">
                   {[...order.statusHistory].reverse().map((h, i) => (
                     <div key={i} className="flex gap-3 text-sm font-body">
@@ -362,12 +315,8 @@ const OrderDetailPage = () => {
                         <p className="font-bold text-earth-800 capitalize">
                           {ORDER_STATUSES[h.status]?.label || h.status}
                         </p>
-                        {h.note && (
-                          <p className="text-earth-500 mt-0.5">{h.note}</p>
-                        )}
-                        <p className="text-earth-400 text-xs mt-1">
-                          {formatDateTime(h.changedAt)}
-                        </p>
+                        {h.note && <p className="text-earth-500 mt-0.5">{h.note}</p>}
+                        <p className="text-earth-400 text-xs mt-1">{formatDateTime(h.changedAt)}</p>
                       </div>
                     </div>
                   ))}
@@ -380,9 +329,7 @@ const OrderDetailPage = () => {
           <div className="lg:col-span-1 space-y-5">
             {/* Price summary */}
             <div className="card p-5">
-              <h3 className="font-display font-bold text-earth-900 mb-4">
-                Price Summary
-              </h3>
+              <h3 className="font-display font-bold text-earth-900 mb-4">Price Summary</h3>
               <div className="space-y-2 font-body text-sm">
                 <div className="flex justify-between text-earth-700">
                   <span>Subtotal</span>
@@ -390,16 +337,8 @@ const OrderDetailPage = () => {
                 </div>
                 <div className="flex justify-between text-earth-700">
                   <span>Shipping</span>
-                  <span
-                    className={
-                      order.shippingCharge === 0
-                        ? "text-leaf-700 font-bold"
-                        : ""
-                    }
-                  >
-                    {order.shippingCharge === 0
-                      ? "FREE"
-                      : formatPrice(order.shippingCharge)}
+                  <span className={order.shippingCharge === 0 ? "text-leaf-700 font-bold" : ""}>
+                    {order.shippingCharge === 0 ? "FREE" : formatPrice(order.shippingCharge)}
                   </span>
                 </div>
                 {order.tax > 0 && (
@@ -423,20 +362,15 @@ const OrderDetailPage = () => {
 
             {/* Payment info */}
             <div className="card p-5">
-              <h3 className="font-display font-bold text-earth-900 mb-3">
-                Payment
-              </h3>
+              <h3 className="font-display font-bold text-earth-900 mb-3">Payment</h3>
               <div className="font-body text-sm space-y-1">
                 <p className="text-earth-700">
-                  <span className="font-bold">Method:</span> Online Payment
-                  (Razorpay)
+                  <span className="font-bold">Method:</span> Online Payment (Razorpay)
                 </p>
                 {order.paymentId?.status && (
                   <p className="text-earth-700">
                     <span className="font-bold">Status:</span>{" "}
-                    <span className="capitalize">
-                      {order.paymentId.status.replace(/_/g, " ")}
-                    </span>
+                    <span className="capitalize">{order.paymentId.status.replace(/_/g, " ")}</span>
                   </p>
                 )}
                 {order.paymentId?.razorpayPaymentId && (
@@ -449,18 +383,12 @@ const OrderDetailPage = () => {
 
             {/* Shipping address */}
             <div className="card p-5">
-              <h3 className="font-display font-bold text-earth-900 mb-3">
-                Delivery Address
-              </h3>
+              <h3 className="font-display font-bold text-earth-900 mb-3">Delivery Address</h3>
               <div className="font-body text-sm text-earth-700 space-y-1">
                 <p className="font-bold">{order.shippingAddress?.fullName}</p>
                 <p>{order.shippingAddress?.addressLine1}</p>
-                {order.shippingAddress?.addressLine2 && (
-                  <p>{order.shippingAddress.addressLine2}</p>
-                )}
-                <p>
-                  {order.shippingAddress?.city}, {order.shippingAddress?.state}
-                </p>
+                {order.shippingAddress?.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
+                <p>{order.shippingAddress?.city}, {order.shippingAddress?.state}</p>
                 <p>PIN: {order.shippingAddress?.pincode}</p>
                 <p className="text-earth-500">{order.shippingAddress?.phone}</p>
               </div>
@@ -472,27 +400,6 @@ const OrderDetailPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Review Modal */}
-      {reviewModal && (
-        <ReviewModal
-          isOpen={!!reviewModal}
-          onClose={() => setReviewModal(null)}
-          productId={reviewModal.item.productId}
-          productName={reviewModal.item.name}
-          productImage={reviewModal.item.image ? transformImage(reviewModal.item.image) : null}
-          variantId={reviewModal.item.variantId}
-          variantSize={reviewModal.item.size}
-          orderId={order._id}
-          onSuccess={(review) => {
-            setReviewedItems((prev) => ({
-              ...prev,
-              [reviewModal.item.productId]: review,
-            }));
-            setReviewModal(null);
-          }}
-        />
-      )}
     </div>
   );
 };

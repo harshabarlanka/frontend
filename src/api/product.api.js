@@ -6,6 +6,7 @@ export const getProductAPI = (slug) => api.get(`/products/${slug}`);
 export const getCategoriesAPI = () => api.get("/products/categories");
 export const addReviewAPI = (id, data) => api.post(`/products/${id}/reviews`, data);
 export const getReviewsAPI = (id) => api.get(`/products/${id}/reviews`);
+export const getMyReviewsAPI = () => api.get("/products/my-reviews");
 export const getRecommendationsAPI = (excludeIds = []) =>
   api.get("/recommendations", {
     params: { excludeIds: excludeIds.join(",") },
