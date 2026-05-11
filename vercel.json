@@ -1,7 +1,27 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    {
+      "source": "/robots.txt",
+      "destination": "https://backend-gyml.onrender.com/robots.txt"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "https://backend-gyml.onrender.com/sitemap.xml"
+    },
+    {
+      "source": "/sitemap-products.xml",
+      "destination": "https://backend-gyml.onrender.com/sitemap-products.xml"
+    },
+    {
+      "source": "/sitemap-index.xml",
+      "destination": "https://backend-gyml.onrender.com/sitemap-index.xml"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
   ],
+
   "headers": [
     {
       "source": "/(.*)",
@@ -11,25 +31,6 @@
         { "key": "X-XSS-Protection", "value": "1; mode=block" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
-      ]
-    },
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-      ]
-    },
-    {
-      "source": "/(favicon.ico|logo.png|og-default.jpg|apple-touch-icon.png|web-app-manifest-192x192.png|web-app-manifest-512x512.png)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
-      ]
-    },
-    {
-      "source": "/site.webmanifest",
-      "headers": [
-        { "key": "Content-Type", "value": "application/manifest+json" },
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
       ]
     }
   ]
