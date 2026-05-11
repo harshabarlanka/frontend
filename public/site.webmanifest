@@ -1,21 +1,32 @@
 {
-  "name": "MyWebSite",
-  "short_name": "MySite",
+  "name": "Naidu Gari Ruchulu",
+  "short_name": "NGR Pickles",
+  "description": "Authentic Andhra homemade pickles, sweets, snacks and podis delivered pan-India.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fef9ee",
+  "theme_color": "#7c2d12",
+  "orientation": "portrait",
+  "categories": ["food", "shopping"],
+  "lang": "en-IN",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "maskable any"
     },
     {
       "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
-  ],
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff",
-  "display": "standalone"
+  ]
 }

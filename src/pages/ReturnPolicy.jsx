@@ -1,4 +1,17 @@
-const ReturnPolicy = () => (
+import { useSEO, SITE_URL } from "../hooks/useSEO";
+
+const ReturnPolicy = () => {
+  useSEO({
+    title: "Return & Refund Policy — Naidu Gari Ruchulu",
+    description: "Learn about our return and refund policy. We replace or refund damaged/incorrect orders reported within 24 hours.",
+    canonical: `${SITE_URL}/return-policy`,
+    breadcrumbs: [
+      { name: "Home", url: "/" },
+      { name: "Return & Refund Policy", url: "/return-policy" },
+    ],
+  });
+
+  return (
   <div className="page-container py-24 max-w-4xl">
     <h1 className="text-3xl font-bold mb-6">Return & Refund Policy</h1>
 
@@ -24,6 +37,7 @@ const ReturnPolicy = () => (
       Orders can be cancelled only before they are shipped.
     </p>
   </div>
-);
+  );
+};
 
 export default ReturnPolicy;

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSEO, SITE_URL } from "../hooks/useSEO";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { getComboBySlugAPI } from "../api/combo.api";
 import { useCart } from "../context/CartContext";
@@ -92,6 +93,22 @@ const ComboDetailPage = () => {
       </div>
     );
   }
+
+  // ── SEO ──────────────────────────────────────────────────────────────────
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useSEO({
+    title: `${combo.name} | Andhra Pickle Combo Pack`,
+    description: combo.description
+      ? `${combo.description.slice(0, 150)} — Buy online at Naidu Gari Ruchulu.`
+      : `${combo.name} — a curated Andhra pickle & snack combo pack at special price. Order online with pan-India delivery.`,
+    canonical: `${SITE_URL}/combos/${combo.slug}`,
+    image: combo.images?.[0],
+    breadcrumbs: [
+      { name: "Home", url: "/" },
+      { name: "Combos", url: "/combos" },
+      { name: combo.name, url: `/combos/${combo.slug}` },
+    ],
+  });
 
   const discountPercent =
     combo.originalPrice > combo.price

@@ -1,4 +1,17 @@
-const ShippingPolicy = () => (
+import { useSEO, SITE_URL } from "../hooks/useSEO";
+
+const ShippingPolicy = () => {
+  useSEO({
+    title: "Shipping Policy — Naidu Gari Ruchulu",
+    description: "Read Naidu Gari Ruchulu's shipping policy. Free shipping above ₹999. Pan-India delivery in 3–7 business days via trusted courier partners.",
+    canonical: `${SITE_URL}/shipping-policy`,
+    breadcrumbs: [
+      { name: "Home", url: "/" },
+      { name: "Shipping Policy", url: "/shipping-policy" },
+    ],
+  });
+
+  return (
   <div className="page-container py-24 max-w-4xl">
     <h1 className="text-3xl font-bold mb-6">Shipping Policy</h1>
 
@@ -42,6 +55,7 @@ const ShippingPolicy = () => (
       For any queries, contact us at <strong>support@naidugariruchulu.com</strong>
     </p>
   </div>
-);
+  );
+};
 
 export default ShippingPolicy;

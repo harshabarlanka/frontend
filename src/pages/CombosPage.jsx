@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSEO, SITE_URL } from "../hooks/useSEO";
 import { getCombosAPI } from "../api/combo.api";
 import ComboCard from "../components/combo/ComboCard";
 import { PageLoader } from "../components/common/Loader";
@@ -6,6 +7,15 @@ import EmptyState from "../components/common/EmptyState";
 import ErrorState from "../components/common/ErrorState";
 
 const CombosPage = () => {
+  useSEO({
+    title: "Combo Packs — Andhra Pickle & Snack Gift Combos",
+    description: "Explore our value combo packs — curated Andhra pickle, snack and sweet combinations at special prices. Perfect for gifting and family orders.",
+    canonical: `${SITE_URL}/combos`,
+    breadcrumbs: [
+      { name: "Home", url: "/" },
+      { name: "Combos", url: "/combos" },
+    ],
+  });
   const [combos, setCombos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

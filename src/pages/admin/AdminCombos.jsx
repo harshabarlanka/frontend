@@ -4,6 +4,7 @@ import { getAdminProductsAPI } from "../../api/admin/admin.api";
 import { transformImage } from "../../utils/imageTransform";
 import { getErrorMessage } from "../../utils";
 import toast from "react-hot-toast";
+import { useSEO } from "../../hooks/useSEO";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -329,6 +330,7 @@ const ComboFormModal = ({ initial, onClose, onSaved }) => {
 // ── Main AdminCombos Page ─────────────────────────────────────────────────────
 
 const AdminCombos = () => {
+  useSEO({ noIndex: true });
   const [combos, setCombos]     = useState([]);
   const [loading, setLoading]   = useState(true);
   const [modalOpen, setModalOpen] = useState(false);

@@ -10,6 +10,7 @@ import InlineReviewSection from "../components/review/InlineReviewSection";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import { transformImage } from "../utils/imageTransform";
+import { useSEO } from "../hooks/useSEO";
 
 const STEPS = [
   { key: "confirmed", label: "Order Confirmed", icon: "✅" },
@@ -20,6 +21,7 @@ const STEPS = [
 const STEP_INDEX = { pending: 0, confirmed: 1, packed: 2, shipped: 3, delivered: 4 };
 
 const OrderDetailPage = () => {
+  useSEO({ noIndex: true });
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();

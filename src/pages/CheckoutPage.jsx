@@ -14,6 +14,7 @@ import AddressCard from "../components/address/AddressCard";
 import AddressForm from "../components/address/AddressForm";
 import toast from "react-hot-toast";
 import { transformImage } from "../utils/imageTransform";
+import { useSEO } from "../hooks/useSEO";
 
 const STEPS = ["Address", "Payment", "Review"];
 const MAX_ADDRESSES = 5;
@@ -38,6 +39,7 @@ const toShippingPayload = (addr) => ({
 
 // ─────────────────────────────────────────────────────────────────────────────
 const CheckoutPage = () => {
+  useSEO({ noIndex: true });
   const { user, updateUser } = useAuth();
   const { cart, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();

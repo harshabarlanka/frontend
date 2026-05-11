@@ -3,8 +3,10 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { resetPassAPI } from "../api/auth.api";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../utils";
+import { useSEO } from "../hooks/useSEO";
 
 const ResetPassword = () => {
+  useSEO({ title: "Reset Your Password", noIndex: true });
   const [params] = useSearchParams();
   const navigate = useNavigate();
 

@@ -1,0 +1,26 @@
+=== OG DEFAULT IMAGE ===
+
+You need to create: /public/og-default.jpg (1200x630px)
+
+This is the fallback image used when sharing any page on:
+- Facebook
+- WhatsApp
+- Twitter/X
+- LinkedIn
+- Telegram
+
+REQUIREMENTS:
+- Size: exactly 1200 × 630 pixels
+- Format: JPG (JPEG), optimized for web (< 200KB)
+- Content: Logo + "Naidu Gari Ruchulu" text + a hero product shot
+- File name: og-default.jpg
+- Place in: /pickle-frontend/public/og-default.jpg
+
+TOOLS TO CREATE IT:
+- Canva: Use "Social Media" → "Facebook Post" template (1200x630)
+- Figma: New frame → 1200x630
+- Or export a high-quality banner from your existing banner.jpeg (already in /src/assets/)
+
+After creating, also copy your logo image to:
+- /public/logo.png  (for the Organization schema)
+

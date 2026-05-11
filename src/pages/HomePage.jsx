@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSEO } from "../hooks/useSEO";
 import { Link } from "react-router-dom";
 import {
   FiArrowRight,
@@ -74,6 +75,13 @@ const SkeletonCard = () => (
 );
 
 const HomePage = () => {
+  useSEO({
+    title: "Authentic Andhra Homemade Pickles, Sweets & Snacks | Buy Online",
+    description:
+      "Naidu Gari Ruchulu — Order authentic Andhra homemade Avakaya, Chicken Pickle, Gongura Pickle, Prawns Pickle, Sweets & Snacks online. No preservatives. Pan-India delivery.",
+    canonical: "https://naidugariruchulu.com/",
+    breadcrumbs: [{ name: "Home", url: "/" }],
+  });
   const [bestsellers, setBestsellers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [combos, setCombos] = useState([]);

@@ -9,6 +9,7 @@ import { formatPrice, getErrorMessage } from "../../utils";
 import { PageLoader } from "../../components/common/Loader";
 import Loader from "../../components/common/Loader";
 import toast from "react-hot-toast";
+import { useSEO } from "../../hooks/useSEO";
 
 const EMPTY_FORM = {
   code: "",
@@ -275,6 +276,7 @@ const CouponModal = ({ coupon, onClose, onSaved }) => {
 };
 
 const AdminCoupons = () => {
+  useSEO({ noIndex: true });
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);

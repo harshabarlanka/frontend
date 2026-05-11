@@ -13,10 +13,12 @@ import AddressCard from "../components/address/AddressCard";
 import AddressForm from "../components/address/AddressForm";
 import Loader from "../components/common/Loader";
 import toast from "react-hot-toast";
+import { useSEO } from "../hooks/useSEO";
 
 const tabs = ["Profile", "Addresses", "Security"];
 
 const ProfilePage = () => {
+  useSEO({ noIndex: true });
   const { user, updateUser, logout } = useAuth();
   const [searchParams] = useSearchParams();
   // Support deep-linking: /profile?tab=Addresses

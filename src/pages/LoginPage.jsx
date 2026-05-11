@@ -5,7 +5,9 @@ import { getErrorMessage } from "../utils";
 import Loader from "../components/common/Loader";
 import toast from "react-hot-toast";
 import logo from "../assets/logo.png"; // <-- use your actual file name
+import { useSEO } from "../hooks/useSEO";
 const LoginPage = () => {
+  useSEO({ title: "Login to Your Account", noIndex: true });
   const { login, register } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

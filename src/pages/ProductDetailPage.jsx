@@ -11,8 +11,15 @@ import InlineReviewSection from "../components/review/InlineReviewSection";
 import { formatPrice, formatDate, getErrorMessage } from "../utils";
 import toast from "react-hot-toast";
 import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
-import { transformImage } from "../utils/imageTransform";
+import {
+  transformImage,
+  transformImageDetail,
+  transformImageThumb,
+  transformImageOG,
+} from "../utils/imageTransform";
 import api from "../api/axios";
+import { useSEO, SITE_URL } from "../hooks/useSEO";
+import Breadcrumb from "../components/common/Breadcrumb";
 
 // Matches a 24-character hex MongoDB ObjectId
 const isObjectId = (str) => /^[a-f\d]{24}$/i.test(str);
@@ -58,7 +65,56 @@ const ProductDetailPage = () => {
     };
   }, [slug]);
 
+  const images = product?.images?.length > 0 ? product.images : [null];
+
+  const categoryLabel = product?.category
+    ? product.category
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    : "Product";
+
+  const seoTitle = product
+    ? `${product.name} | Authentic Andhra ${categoryLabel}`
+    : "Product | Naidu Gari Ruchulu";
+
+  const seoDesc = product?.description
+    ? `${product.description
+        .slice(0, 140)
+        .replace(/\s+/g, " ")
+        .trim()}… Buy online at Naidu Gari Ruchulu.`
+    : "Authentic Andhra pickles and traditional foods.";
+
+  const seoImage = images[0] ? transformImageOG(images[0]) : undefined;
+
+  const seoCanonical = product
+    ? `${SITE_URL}/product/${product.slug}`
+    : `${SITE_URL}/products`;
+
+  useSEO({
+    title: seoTitle,
+    description: seoDesc,
+    canonical: seoCanonical,
+    image: seoImage,
+    type: "product",
+    product,
+    breadcrumbs: product
+      ? [
+          { name: "Home", url: "/" },
+          { name: "Shop", url: "/products" },
+          {
+            name: categoryLabel,
+            url: `/products?category=${product.category}`,
+          },
+          {
+            name: product.name,
+            url: `/product/${product.slug}`,
+          },
+        ]
+      : [],
+  });
+
   if (loading) return <PageLoader />;
+
   if (error || !product)
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -100,9 +156,9 @@ const ProductDetailPage = () => {
     }
   };
 
-  const images = product.images?.length > 0 ? product.images : [null];
   const avgRating = product.ratings?.average || 0;
   const reviewCount = product.ratings?.count || 0;
+
   const reviews = product.reviews || [];
 
   const totalReviewPages = Math.ceil(reviews.length / REVIEWS_PER_PAGE);
@@ -113,7 +169,9 @@ const ProductDetailPage = () => {
   );
 
   const userReview = user
-    ? reviews.find((r) => r.userId?._id === user._id || r.userId === user._id) || null
+    ? reviews.find(
+        (r) => r.userId?._id === user._id || r.userId === user._id,
+      ) || null
     : null;
 
   // Rating breakdown
@@ -121,36 +179,28 @@ const ProductDetailPage = () => {
     star,
     count: reviews.filter((r) => r.rating === star).length,
     pct: reviews.length
-      ? Math.round((reviews.filter((r) => r.rating === star).length / reviews.length) * 100)
+      ? Math.round(
+          (reviews.filter((r) => r.rating === star).length / reviews.length) *
+            100,
+        )
       : 0,
   }));
   return (
     <div className="min-h-screen bg-earth-50 animate-fade-in">
       <div className="page-container">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-xs font-body text-earth-400 mb-8">
-          <Link to="/" className="hover:text-brand-600 transition-colors">
-            Home
-          </Link>
-          <span>/</span>
-          <Link
-            to="/products/all"
-            className="hover:text-brand-600 transition-colors"
-          >
-            Shop
-          </Link>
-          <span>/</span>
-          <Link
-            to={`/products/${product.category}`}
-            className="hover:text-brand-600 transition-colors capitalize"
-          >
-            {product.category}
-          </Link>
-          <span>/</span>
-          <span className="text-earth-700 truncate max-w-[160px]">
-            {product.name}
-          </span>
-        </nav>
+        <Breadcrumb
+          className="mb-8"
+          items={[
+            { name: "Home", url: "/" },
+            { name: "Shop", url: "/products" },
+            {
+              name: categoryLabel,
+              url: `/products?category=${product.category}`,
+            },
+            { name: product.name, url: `/product/${product.slug}` },
+          ]}
+        />
 
         <div className="grid lg:grid-cols-2 gap-12 mb-16">
           {/* Images */}
@@ -158,8 +208,13 @@ const ProductDetailPage = () => {
             <div className="aspect-square rounded-2xl overflow-hidden bg-earth-100 border border-earth-100">
               {images[selectedImg] ? (
                 <img
-                  src={transformImage(images[selectedImg])}
-                  alt={product.name}
+                  src={transformImageDetail(images[selectedImg])}
+                  alt={`${product.name} — Naidu Gari Ruchulu`}
+                  title={product.name}
+                  width="600"
+                  height="600"
+                  loading="eager"
+                  fetchpriority="high"
                   className="w-full h-full object-cover transition-all duration-300"
                 />
               ) : (
@@ -182,8 +237,12 @@ const ProductDetailPage = () => {
                   >
                     {img ? (
                       <img
-                        src={transformImage(img)}
-                        alt=""
+                        src={transformImageThumb(img)}
+                        alt={`${product.name} view ${idx + 1}`}
+                        width="80"
+                        height="80"
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -456,8 +515,13 @@ const ProductDetailPage = () => {
                     {/* Bar breakdown */}
                     <div className="flex-1 space-y-1.5">
                       {ratingBreakdown.map(({ star, count, pct }) => (
-                        <div key={star} className="flex items-center gap-2 text-xs">
-                          <span className="text-earth-600 w-3 text-right font-semibold">{star}</span>
+                        <div
+                          key={star}
+                          className="flex items-center gap-2 text-xs"
+                        >
+                          <span className="text-earth-600 w-3 text-right font-semibold">
+                            {star}
+                          </span>
                           <span className="text-amber-400 text-sm">★</span>
                           <div className="flex-1 h-2 bg-earth-200 rounded-full overflow-hidden">
                             <div
@@ -465,7 +529,9 @@ const ProductDetailPage = () => {
                               style={{ width: `${pct}%` }}
                             />
                           </div>
-                          <span className="text-earth-500 w-6 text-right">{count}</span>
+                          <span className="text-earth-500 w-6 text-right">
+                            {count}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -535,8 +601,16 @@ const ProductDetailPage = () => {
                                     </span>
                                     {review.verifiedPurchase && (
                                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-semibold border border-emerald-200">
-                                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        <svg
+                                          className="w-3 h-3"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
                                         </svg>
                                         Verified Purchase
                                       </span>
@@ -544,8 +618,13 @@ const ProductDetailPage = () => {
                                   </div>
                                   <div className="flex items-center gap-2 mt-1.5">
                                     <div className="flex">
-                                      {[1,2,3,4,5].map((s) => (
-                                        <span key={s} className={`text-base ${s <= review.rating ? "text-amber-400" : "text-gray-200"}`}>★</span>
+                                      {[1, 2, 3, 4, 5].map((s) => (
+                                        <span
+                                          key={s}
+                                          className={`text-base ${s <= review.rating ? "text-amber-400" : "text-gray-200"}`}
+                                        >
+                                          ★
+                                        </span>
                                       ))}
                                     </div>
                                     <span className="text-xs font-bold text-earth-700">
@@ -573,30 +652,38 @@ const ProductDetailPage = () => {
                     {totalReviewPages > 1 && (
                       <div className="flex flex-wrap items-center justify-center gap-2 pt-4">
                         <button
-                          onClick={() => setReviewPage((p) => Math.max(1, p - 1))}
+                          onClick={() =>
+                            setReviewPage((p) => Math.max(1, p - 1))
+                          }
                           disabled={reviewPage === 1}
                           className="px-4 py-2 rounded-xl border border-earth-200 bg-white text-sm font-semibold text-earth-700 transition-all hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                           Prev
                         </button>
-                        {Array.from({ length: totalReviewPages }).map((_, idx) => {
-                          const page = idx + 1;
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => setReviewPage(page)}
-                              className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
-                                reviewPage === page
-                                  ? "bg-brand-600 text-white shadow-md"
-                                  : "bg-white border border-earth-200 text-earth-700 hover:border-brand-400"
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          );
-                        })}
+                        {Array.from({ length: totalReviewPages }).map(
+                          (_, idx) => {
+                            const page = idx + 1;
+                            return (
+                              <button
+                                key={page}
+                                onClick={() => setReviewPage(page)}
+                                className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${
+                                  reviewPage === page
+                                    ? "bg-brand-600 text-white shadow-md"
+                                    : "bg-white border border-earth-200 text-earth-700 hover:border-brand-400"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            );
+                          },
+                        )}
                         <button
-                          onClick={() => setReviewPage((p) => Math.min(totalReviewPages, p + 1))}
+                          onClick={() =>
+                            setReviewPage((p) =>
+                              Math.min(totalReviewPages, p + 1),
+                            )
+                          }
                           disabled={reviewPage === totalReviewPages}
                           className="px-4 py-2 rounded-xl border border-earth-200 bg-white text-sm font-semibold text-earth-700 transition-all hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed"
                         >

@@ -5,6 +5,7 @@ import { getErrorMessage } from '../../utils'
 import { InlineLoader } from '../../components/common/Loader'
 import ErrorState from '../../components/common/ErrorState'
 import OrderTable from '../../components/admin/OrderTable'
+import { useSEO } from "../../hooks/useSEO";
 
 const STATUS_FILTERS = [
   'all',
@@ -20,6 +21,7 @@ const STATUS_FILTERS = [
 const PAYMENT_FILTERS = ['all', 'razorpay']
 
 const AdminOrders = () => {
+  useSEO({ noIndex: true });
   const [orders, setOrders]     = useState([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState(null)

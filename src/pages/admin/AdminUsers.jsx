@@ -6,8 +6,10 @@ import ErrorState from '../../components/common/ErrorState'
 import EmptyState from '../../components/common/EmptyState'
 import Badge from '../../components/common/Badge'
 import toast from 'react-hot-toast'
+import { useSEO } from "../../hooks/useSEO";
 
 const AdminUsers = () => {
+  useSEO({ noIndex: true });
   const [users, setUsers]       = useState([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState(null)

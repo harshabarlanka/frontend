@@ -10,6 +10,7 @@ import ErrorState from "../components/common/ErrorState";
 import InlineReviewSection from "../components/review/InlineReviewSection";
 import { useAuth } from "../context/AuthContext";
 import { transformImage } from "../utils/imageTransform";
+import { useSEO } from "../hooks/useSEO";
 
 const statusFilters = [
   "all",
@@ -22,6 +23,7 @@ const statusFilters = [
 ];
 
 const OrdersPage = () => {
+  useSEO({ noIndex: true });
   const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);

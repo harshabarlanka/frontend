@@ -1,4 +1,18 @@
-const Terms = () => (
+import { useSEO, SITE_URL } from "../hooks/useSEO";
+
+const Terms = () => {
+  useSEO({
+    title: "Terms of Service — Naidu Gari Ruchulu",
+    description: "Read the terms and conditions governing your use of the Naidu Gari Ruchulu website and purchases.",
+    canonical: `${SITE_URL}/terms`,
+    noIndex: true,
+    breadcrumbs: [
+      { name: "Home", url: "/" },
+      { name: "Terms of Service", url: "/terms" },
+    ],
+  });
+
+  return (
   <div className="page-container py-24 max-w-4xl">
     <h1 className="text-3xl font-bold mb-6">Terms of Service</h1>
 
@@ -26,6 +40,7 @@ const Terms = () => (
       You agree not to misuse the website or attempt fraudulent activity.
     </p>
   </div>
-);
+  );
+};
 
 export default Terms;

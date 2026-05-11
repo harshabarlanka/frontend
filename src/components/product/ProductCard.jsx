@@ -58,7 +58,12 @@ const ProductCard = ({ product }) => {
         {product.images?.[0] ? (
           <img
             src={transformImage(product.images[0])}
-            alt={product.name}
+            alt={`${product.name} — Naidu Gari Ruchulu`}
+            title={product.name}
+            width="400"
+            height="400"
+            loading="lazy"
+            decoding="async"
             onLoad={() => setImgLoaded(true)}
             className={`aspect-[1.1] sm:aspect-[1.02] w-full object-cover transition-all duration-700
             ${imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"}

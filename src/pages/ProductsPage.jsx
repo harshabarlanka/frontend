@@ -22,6 +22,7 @@ import { getProductsAPI, getBestsellersAPI } from "../api/product.api";
 import ProductGrid from "../components/product/ProductGrid";
 import Pagination from "../components/common/Pagination";
 import { CATEGORIES, SORT_OPTIONS } from "../constants/constants_index";
+import { useSEO, SITE_URL } from "../hooks/useSEO";
 
 const PRODUCTS_PER_PAGE = 12;
 
@@ -35,6 +36,33 @@ const ProductsPage = () => {
   const page = Math.max(1, Number(searchParams.get("page") || 1));
 
   const isBestsellers = tag === "bestseller";
+
+  // ── SEO ──────────────────────────────────────────────────────────────────
+  const categoryMeta = CATEGORIES.find((c) => c.value === category);
+  const seoTitle = isBestsellers
+    ? "Bestselling Andhra Pickles & Snacks — Top Rated Products"
+    : categoryMeta
+    ? `${categoryMeta.label} — Authentic Andhra Homemade ${categoryMeta.label}`
+    : "Shop All Products — Andhra Pickles, Sweets, Snacks & Podis";
+  const seoDesc = isBestsellers
+    ? "Our top-rated bestselling Andhra homemade pickles, snacks and sweets. Loved by thousands of customers. Preservative-free, pan-India delivery."
+    : categoryMeta
+    ? `Buy authentic homemade Andhra ${categoryMeta.label.toLowerCase()} online. Traditionally prepared, preservative-free and delivered fresh. Pan-India shipping by Naidu Gari Ruchulu.`
+    : "Explore our full range of authentic Andhra pickles, sweets, snacks and podis. Homemade with traditional recipes. No preservatives. Pan-India delivery.";
+  const seoCanonical = category
+    ? `${SITE_URL}/products?category=${category}`
+    : `${SITE_URL}/products`;
+
+  useSEO({
+    title: seoTitle,
+    description: seoDesc,
+    canonical: seoCanonical,
+    breadcrumbs: [
+      { name: "Home", url: "/" },
+      { name: "Shop", url: "/products" },
+      ...(categoryMeta ? [{ name: categoryMeta.label, url: `/products?category=${category}` }] : []),
+    ],
+  });
 
   // ── Scroll to top on every filter / page / category change ─────────────────
   // useLayoutEffect fires before paint so the user never sees a mid-page flash.

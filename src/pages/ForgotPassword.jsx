@@ -2,8 +2,10 @@ import { useState } from "react";
 import { forgotPassAPI } from "../api/auth.api";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../utils";
+import { useSEO } from "../hooks/useSEO";
 
 const ForgotPassword = () => {
+  useSEO({ title: "Forgot Password", noIndex: true });
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 

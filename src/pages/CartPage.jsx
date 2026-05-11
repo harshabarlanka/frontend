@@ -6,11 +6,13 @@ import EmptyState from "../components/common/EmptyState";
 import { InlineLoader } from "../components/common/Loader";
 import { formatPrice } from "../utils";
 import YouMayAlsoLike from "../components/product/YouMayAlsoLike";
+import { useSEO } from "../hooks/useSEO";
 
 const FREE_DELIVERY_THRESHOLD = 999;
 const DELIVERY_FEE = 49;
 
 const CartPage = () => {
+  useSEO({ noIndex: true });
   const { user } = useAuth();
   const { cart, cartLoading, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();

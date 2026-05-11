@@ -6,6 +6,7 @@ import { formatPrice, formatDate, getErrorMessage } from '../../utils'
 import { InlineLoader } from '../../components/common/Loader'
 import Badge from '../../components/common/Badge'
 import ErrorState from '../../components/common/ErrorState'
+import { useSEO } from "../../hooks/useSEO";
 
 // ── Stat card ────────────────────────────────────────────────────────────────
 const StatCard = ({ emoji, label, value, sub, color = 'brand' }) => {
@@ -75,6 +76,7 @@ const StatusBar = ({ ordersByStatus = {} }) => {
 
 // ── Main component ────────────────────────────────────────────────────────────
 const AdminDashboard = () => {
+  useSEO({ noIndex: true });
   const [data, setData]     = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]   = useState(null)

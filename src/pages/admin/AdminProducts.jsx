@@ -12,8 +12,10 @@ import Badge from "../../components/common/Badge";
 import ProductForm from "../../components/admin/ProductForm";
 import toast from "react-hot-toast";
 import { transformImage } from "../../utils/imageTransform";
+import { useSEO } from "../../hooks/useSEO";
 
 const AdminProducts = () => {
+  useSEO({ noIndex: true });
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

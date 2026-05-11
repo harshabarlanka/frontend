@@ -21,6 +21,7 @@ import ErrorState from "../../components/common/ErrorState";
 import Badge from "../../components/common/Badge";
 import toast from "react-hot-toast";
 import { transformImage } from "../../utils/imageTransform";
+import { useSEO } from "../../hooks/useSEO";
 
 const STEPS = [
   { key: "confirmed", label: "Order Confirmed", icon: "✅" },
@@ -71,6 +72,7 @@ const NEXT_ACTIONS = {
 };
 
 const AdminOrderDetailPage = () => {
+  useSEO({ noIndex: true });
   const { id } = useParams();
   const navigate = useNavigate();
 
