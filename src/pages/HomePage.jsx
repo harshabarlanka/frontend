@@ -79,7 +79,7 @@ const HomePage = () => {
     title: "Authentic Andhra Homemade Pickles, Sweets & Snacks | Buy Online",
     description:
       "Naidu Gari Ruchulu — Order authentic Andhra homemade Avakaya, Chicken Pickle, Gongura Pickle, Prawns Pickle, Sweets & Snacks online. No preservatives. Pan-India delivery.",
-    canonical: "https://naidugariruchulu.com/",
+    canonical: "https://naidugariruchulu.vercel.app/",
     breadcrumbs: [{ name: "Home", url: "/" }],
   });
   const [bestsellers, setBestsellers] = useState([]);
