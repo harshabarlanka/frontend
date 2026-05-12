@@ -80,6 +80,24 @@ const ComboDetailPage = () => {
 
     return () => clearInterval(interval);
   }, [images.length]);
+  
+  useSEO({
+    title: combo ? `${combo.name} | Andhra Pickle Combo Pack` : "Combo Details",
+    description: combo?.description
+      ? `${combo.description.slice(0, 150)} — Buy online at Naidu Gari Ruchulu.`
+      : "Explore combo offers at Naidu Gari Ruchulu.",
+    canonical: combo?.slug
+      ? `${SITE_URL}/combos/${combo.slug}`
+      : `${SITE_URL}/combos`,
+    image: combo?.images?.[0],
+    breadcrumbs: combo
+      ? [
+          { name: "Home", url: "/" },
+          { name: "Combos", url: "/combos" },
+          { name: combo.name, url: `/combos/${combo.slug}` },
+        ]
+      : [],
+  });
 
   if (loading) return <PageLoader />;
 
@@ -93,22 +111,6 @@ const ComboDetailPage = () => {
       </div>
     );
   }
-
-  // ── SEO ──────────────────────────────────────────────────────────────────
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useSEO({
-    title: `${combo.name} | Andhra Pickle Combo Pack`,
-    description: combo.description
-      ? `${combo.description.slice(0, 150)} — Buy online at Naidu Gari Ruchulu.`
-      : `${combo.name} — a curated Andhra pickle & snack combo pack at special price. Order online with pan-India delivery.`,
-    canonical: `${SITE_URL}/combos/${combo.slug}`,
-    image: combo.images?.[0],
-    breadcrumbs: [
-      { name: "Home", url: "/" },
-      { name: "Combos", url: "/combos" },
-      { name: combo.name, url: `/combos/${combo.slug}` },
-    ],
-  });
 
   const discountPercent =
     combo.originalPrice > combo.price
