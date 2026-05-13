@@ -18,7 +18,7 @@ import {
 } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/logo.webp";
 
 // ── Nav link definitions ──────────────────────────────────────────────────────
 // Each entry maps a display label to the URL it produces when clicked.

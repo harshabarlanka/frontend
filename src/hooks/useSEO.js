@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 const SITE_NAME = "Naidu Gari Ruchulu";
 const SITE_URL = import.meta.env.VITE_SITE_URL || "https://naidugariruchulu.vercel.app";
-const DEFAULT_IMAGE = `${SITE_URL}/og-default.jpg`;
+const DEFAULT_IMAGE = `${SITE_URL}/og-default.webp`;
 const DEFAULT_DESCRIPTION =
   "Authentic Andhra homemade pickles, sweets, snacks & podis — Avakaya, Chicken Pickle, Gongura, Prawns Pickle & more. Fresh, preservative-free. Pan-India delivery.";
 
@@ -153,7 +153,7 @@ export function useSEO({
       "@type": "Organization",
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/logo.png`,
+      logo: `${SITE_URL}/logo.webp`,
       image: ogImage,
       description: DEFAULT_DESCRIPTION,
       address: {

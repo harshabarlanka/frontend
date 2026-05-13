@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { getErrorMessage } from "../utils";
 import Loader from "../components/common/Loader";
 import toast from "react-hot-toast";
-import logo from "../assets/logo.png"; // <-- use your actual file name
+import logo from "../assets/logo.webp"; // <-- use your actual file name
 import { useSEO } from "../hooks/useSEO";
 const LoginPage = () => {
   useSEO({ title: "Login to Your Account", noIndex: true });

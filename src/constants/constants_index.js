@@ -3,11 +3,11 @@ export const API_BASE_URL =
 
 export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID || "";
 
-import vegPickles from "../assets/categories/veg-pickles.png";
-import nonVegPickles from "../assets/categories/non-veg-pickles.png";
-import sweets from "../assets/categories/sweets.png";
-import snacks from "../assets/categories/snacks.png";
-import podis from "../assets/categories/podis.png";
+import vegPickles from "../assets/categories/veg-pickle.webp";
+import nonVegPickles from "../assets/categories/non-veg-pickle.webp";
+import sweets from "../assets/categories/sweets.webp";
+import snacks from "../assets/categories/hot-snacks.webp";
+import podis from "../assets/categories/podis.webp";
 
 export const CATEGORIES = [
   { value: "veg-pickles", label: "Veg Pickles", image: vegPickles },

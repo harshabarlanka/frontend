@@ -16,10 +16,10 @@ import {
 import { getBestsellersAPI } from "../api/product.api";
 import { getCombosAPI } from "../api/combo.api";
 import { CATEGORIES } from "../constants/constants_index";
-import heroBanner from "../assets/banner.jpeg";
+import heroBanner from "../assets/banner.webp";
 import ProductCard from "../components/product/ProductCard";
 import ComboCard from "../components/combo/ComboCard";
-import logo from "../assets/banner_logo.jpeg";
+import logo from "../assets/banner_logo.webp";
 
 const TESTIMONIALS = [
   {
