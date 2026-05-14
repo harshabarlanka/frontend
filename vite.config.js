@@ -40,25 +40,22 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (!id) return;
           if (
             id.includes("node_modules/react/") ||
             id.includes("node_modules/react-dom/") ||
             id.includes("node_modules/scheduler/")
           )
             return "react-vendor";
-
           if (
             id.includes("node_modules/react-router") ||
             id.includes("node_modules/@remix-run/router")
           )
             return "router-vendor";
-
           if (id.includes("node_modules/react-icons/")) return "icons-vendor";
           if (id.includes("node_modules/react-hot-toast/"))
             return "toast-vendor";
           if (id.includes("node_modules/axios/")) return "http-vendor";
-
-          // REMOVE page chunking! Let Vite handle it automatically
         },
       },
     },
