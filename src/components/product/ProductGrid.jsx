@@ -1,22 +1,24 @@
+import { memo } from "react";
 import ProductCard from "./ProductCard";
 import { SkeletonList } from "../common/Loader";
 import EmptyState from "../common/EmptyState";
 import { Link } from "react-router-dom";
 
-const ProductGrid = ({ products, loading, error }) => {
-  // ✅ First load → show skeleton
+const ProductGrid = memo(({ products, loading, error }) => {
+  // First load → skeleton
   if (loading && (!products || products.length === 0)) {
     return <SkeletonList count={6} />;
   }
 
-  if (error)
+  if (error) {
     return (
-      <div className="text-center py-16">
+      <div className="text-center py-16" role="alert">
         <p className="font-body text-earth-500">{error}</p>
       </div>
     );
+  }
 
-  if (!products || products.length === 0)
+  if (!products || products.length === 0) {
     return (
       <EmptyState
         emoji="🫙"
@@ -29,33 +31,38 @@ const ProductGrid = ({ products, loading, error }) => {
         }
       />
     );
+  }
 
   return (
     <div className="relative">
-      {/* ✅ Product Grid */}
       <div
-        className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 transition-all duration-300 ${
-          loading ? "opacity-70" : "opacity-100"
+        className={`grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 transition-opacity duration-300 ${
+          loading ? "opacity-60 pointer-events-none" : "opacity-100"
         }`}
+        role="list"
+        aria-label="Products"
+        aria-busy={loading}
       >
         {products.map((product, index) => (
-          <div
-            key={product._id}
-            style={{ transitionDelay: `${index * 40}ms` }} // 🔥 subtle stagger
-          >
-            <ProductCard product={product} />
+          <div key={product._id} role="listitem">
+            {/* priority=true for the first 4 cards (above fold) */}
+            <ProductCard product={product} priority={index < 4} />
           </div>
         ))}
       </div>
 
-      {/* ✅ Shimmer overlay (no spinner) */}
+      {/* Shimmer overlay while paginating (non-blocking) */}
       {loading && products.length > 0 && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="w-full h-full shimmer opacity-60" />
+        <div
+          className="absolute inset-0 overflow-hidden pointer-events-none rounded-xl"
+          aria-hidden="true"
+        >
+          <div className="w-full h-full shimmer opacity-40" />
         </div>
       )}
     </div>
   );
-};
+});
 
+ProductGrid.displayName = "ProductGrid";
 export default ProductGrid;

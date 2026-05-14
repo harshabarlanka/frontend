@@ -8,7 +8,7 @@ import { useEffect } from "react";
 
 const SITE_NAME = "Naidu Gari Ruchulu";
 const SITE_URL = import.meta.env.VITE_SITE_URL || "https://naidugariruchulu.vercel.app";
-const DEFAULT_IMAGE = `${SITE_URL}/og-default.webp`;
+const DEFAULT_IMAGE = `${SITE_URL}/og-default.webp`; // Use WebP for better compression and quality. Ensure this file exists in the public folder.
 const DEFAULT_DESCRIPTION =
   "Authentic Andhra homemade pickles, sweets, snacks & podis — Avakaya, Chicken Pickle, Gongura, Prawns Pickle & more. Fresh, preservative-free. Pan-India delivery.";
 
@@ -130,48 +130,8 @@ export function useSEO({
     // ── WhatsApp / Telegram ────────────────────────────────────────────────
     // WhatsApp uses og:image, og:title, og:description — already set above
 
-    // ── JSON-LD: WebSite (always) ──────────────────────────────────────────
-    setJsonLd("ld-website", {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: SITE_NAME,
-      url: SITE_URL,
-      description: DEFAULT_DESCRIPTION,
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: `${SITE_URL}/products?search={search_term_string}`,
-        },
-        "query-input": "required name=search_term_string",
-      },
-    });
-
-    // ── JSON-LD: Organization (always) ─────────────────────────────────────
-    setJsonLd("ld-organization", {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: SITE_NAME,
-      url: SITE_URL,
-      logo: `${SITE_URL}/logo.webp`,
-      image: ogImage,
-      description: DEFAULT_DESCRIPTION,
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Andhra Pradesh",
-        addressCountry: "IN",
-      },
-      contactPoint: {
-        "@type": "ContactPoint",
-        contactType: "customer service",
-        availableLanguage: ["English", "Telugu"],
-        url: `${SITE_URL}/contact`,
-      },
-      sameAs: [
-        "https://www.instagram.com/naidugariruchulu",
-        "https://www.facebook.com/naidugariruchulu",
-      ],
-    });
+    // ── JSON-LD: WebSite + Organization are static and already in index.html ─
+    // Skip re-serializing them on every route change — saves ~2ms per navigation.
 
     // ── JSON-LD: BreadcrumbList ────────────────────────────────────────────
     if (breadcrumbs && breadcrumbs.length > 0) {

@@ -1,34 +1,38 @@
 import axios from "axios";
-import { API_BASE_URL } from "../constants/constants_index";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
-  withCredentials: true,
+  timeout: 15000,
+  // Enable keep-alive for connection reuse (reduces TCP overhead)
   headers: {
     "Content-Type": "application/json",
+    "Accept-Encoding": "gzip, deflate, br",
   },
+  withCredentials: false,
 });
 
-// ── Request interceptor: attach access token ──────────────────────────────────
+// ─── Request interceptor: attach access token ─────────────────────────────────
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("accessToken");
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error),
+  (error) => Promise.reject(error)
 );
 
-// ── Response interceptor: auto-refresh on 401 ────────────────────────────────
+// ─── Response interceptor: handle token refresh ───────────────────────────────
 let isRefreshing = false;
-let failedQueue = [];
+let refreshQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) =>
-    error ? prom.reject(error) : prom.resolve(token),
-  );
-  failedQueue = [];
+  refreshQueue.forEach(({ resolve, reject }) => {
+    error ? reject(error) : resolve(token);
+  });
+  refreshQueue = [];
 };
 
 api.interceptors.response.use(
@@ -36,29 +40,27 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // 401 + not a retry + not the refresh endpoint itself
     if (
       error.response?.status === 401 &&
       !originalRequest._retry &&
-      !originalRequest.url.includes("/auth/me")
+      !originalRequest.url?.includes("/auth/refresh")
     ) {
       if (isRefreshing) {
+        // Queue concurrent requests while refreshing
         return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
+          refreshQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        });
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
       const refreshToken = localStorage.getItem("refreshToken");
-
       if (!refreshToken) {
-        isRefreshing = false;
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         window.location.href = "/login";
@@ -66,22 +68,17 @@ api.interceptors.response.use(
       }
 
       try {
-        const { data } = await axios.post(
-          `${API_BASE_URL}/auth/refresh-token`,
-          { refreshToken },
-        );
-        const { accessToken, refreshToken: newRefreshToken } = data.data;
-
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", newRefreshToken);
-
-        api.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-        processQueue(null, accessToken);
+        const { data } = await api.post("/auth/refresh", { refreshToken });
+        const newToken = data.data.accessToken;
+        localStorage.setItem("accessToken", newToken);
+        if (data.data.refreshToken) {
+          localStorage.setItem("refreshToken", data.data.refreshToken);
+        }
+        processQueue(null, newToken);
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        processQueue(refreshError, null);
+        processQueue(refreshError);
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         window.location.href = "/login";
@@ -92,7 +89,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
 
 export default api;

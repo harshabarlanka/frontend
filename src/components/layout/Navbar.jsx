@@ -18,7 +18,8 @@ import {
 } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
-import logo from "../../assets/logo.webp";
+import logoWebP from "../../assets/logo.webp";
+import logoPNG from "../../assets/logo.webp"; // fallback for unsupported browsers
 
 // ── Nav link definitions ──────────────────────────────────────────────────────
 // Each entry maps a display label to the URL it produces when clicked.
@@ -146,7 +147,7 @@ const Navbar = () => {
           {/* LOGO */}
           <Link to="/" className="flex items-center shrink-0">
             <img
-              src={logo}
+              src={logoWebP}
               alt="Naidu Gari Ruchulu"
               className={`object-contain transition-all duration-300 ${
                 scrolled

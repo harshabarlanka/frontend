@@ -27,33 +27,36 @@ const Footer = () => (
               href="https://instagram.com/naidugariruchulu_official"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Follow us on Instagram (opens in new tab)"
               className="w-9 h-9 rounded-full bg-[#5B2A1C] hover:bg-brand-600 flex items-center justify-center transition"
             >
-              <FaInstagram size={14} />
+              <FaInstagram size={14} aria-hidden="true" />
             </a>
 
             <a
               href="https://facebook.com/naidugariruchulu_official"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Follow us on Facebook (opens in new tab)"
               className="w-9 h-9 rounded-full bg-[#5B2A1C] hover:bg-brand-600 flex items-center justify-center transition"
             >
-              <FaFacebookF size={14} />
+              <FaFacebookF size={14} aria-hidden="true" />
             </a>
 
             <a
               href="https://wa.me/919052355733"
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Contact us on WhatsApp (opens in new tab)"
               className="w-9 h-9 rounded-full bg-[#5B2A1C] hover:bg-brand-600 flex items-center justify-center transition"
             >
-              <FaWhatsapp size={14} />
+              <FaWhatsapp size={14} aria-hidden="true" />
             </a>
           </div>
         </div>
 
         {/* Shop */}
-        <div>
+        <nav aria-label="Shop navigation">
           <h4 className="font-display font-bold text-white text-base mb-4">
             Shop
           </h4>
@@ -78,7 +81,7 @@ const Footer = () => (
               </li>
             ))}
           </ul>
-        </div>
+        </nav>
 
         {/* Help */}
         <div>

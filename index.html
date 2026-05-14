@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
 
-    <!-- VIEWPORT & MOBILE SEO -->
+    <!-- VIEWPORT & MOBILE -->
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -13,11 +13,11 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Naidu Gari Ruchulu" />
     <meta name="format-detection" content="telephone=no" />
-    
     <meta
       name="google-site-verification"
       content="KpSgaAIoIhZdIm9n_RMyEXxIXBa3ITmIyeUx0EX8Q5I"
     />
+
     <!-- PRIMARY SEO META -->
     <title>
       Naidu Gari Ruchulu — Authentic Andhra Homemade Pickles &amp; Snacks
@@ -36,7 +36,6 @@
       content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1"
     />
     <meta name="googlebot" content="index,follow" />
-    <meta name="bingbot" content="index,follow" />
     <link rel="canonical" href="https://naidugariruchulu.vercel.app/" />
 
     <!-- OPEN GRAPH -->
@@ -93,14 +92,44 @@
     <!-- PERFORMANCE: DNS PREFETCH & PRECONNECT -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://checkout.razorpay.com" />
+    <link rel="dns-prefetch" href="https://backend-gyml.onrender.com" />
 
-    <!-- FONTS -->
+    <!-- FONTS: display=swap prevents render-blocking; subset to used weights only -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Lato:wght@300;400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700&display=swap"
       rel="stylesheet"
+      media="print"
+      onload="this.media = 'all'"
     />
+    <noscript>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@400;700&display=swap"
+        rel="stylesheet"
+      />
+    </noscript>
+
+    <!-- CRITICAL CSS: inline font-display swap to avoid FOUT on first paint -->
+    <style>
+      /* Prevent CLS from font load */
+      body {
+        font-family: "Lato", system-ui, sans-serif;
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-family: "Playfair Display", Georgia, serif;
+      }
+      /* Preload skeleton bg to avoid flash */
+      #root {
+        background-color: #faf7f2;
+        min-height: 100vh;
+      }
+    </style>
 
     <!-- STATIC JSON-LD: ORGANIZATION -->
     <script type="application/ld+json" id="ld-organization">
@@ -148,8 +177,10 @@
     </script>
   </head>
   <body>
+    <!-- Skip to main content (keyboard accessibility) -->
+    <!-- <a href="#main-content" class="skip-nav">Skip to main content</a> -->
     <div id="root"></div>
-    <script src="https://checkout.razorpay.com/v1/checkout.js" defer></script>
+    <!-- Razorpay loaded only when checkout is initiated (via dynamic import in CheckoutPage) -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

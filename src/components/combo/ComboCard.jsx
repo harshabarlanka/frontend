@@ -1,38 +1,33 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { getErrorMessage } from "../../utils";
 import toast from "react-hot-toast";
-import { transformImage } from "../../utils/imageTransform";
+import { transformImageCombo, buildSrcSet, CARD_SIZES } from "../../utils/imageTransform";
 
-const ComboCard = ({ combo }) => {
+const ComboCard = memo(({ combo, priority = false }) => {
   const { user } = useAuth();
   const { addComboToCart } = useCart();
   const navigate = useNavigate();
 
   const [adding, setAdding] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
-  const image =
-    combo.images?.[0] || combo.products?.[0]?.product?.images?.[0] || null;
+  const image = combo.images?.[0] || combo.products?.[0]?.product?.images?.[0] || null;
 
   const discountPercent =
     combo.discountPercent ??
     (combo.originalPrice && combo.originalPrice > combo.price
-      ? Math.round(
-          ((combo.originalPrice - combo.price) / combo.originalPrice) * 100,
-        )
+      ? Math.round(((combo.originalPrice - combo.price) / combo.originalPrice) * 100)
       : 0);
 
   const savings = combo.originalPrice ? combo.originalPrice - combo.price : 0;
 
   const handleAddToCart = async (e) => {
     e.preventDefault();
-    if (!user) {
-      navigate("/login");
-      return;
-    }
+    if (!user) { navigate("/login"); return; }
     try {
       setAdding(true);
       await addComboToCart(combo._id, 1);
@@ -43,43 +38,50 @@ const ComboCard = ({ combo }) => {
     }
   };
 
+  const handleView = (e) => {
+    e.preventDefault();
+    navigate(`/combos/${combo.slug}`);
+  };
+
   return (
     <Link
       to={`/combos/${combo.slug}`}
       className="group overflow-hidden rounded-[26px] bg-white
-      shadow-[0_14px_45px_rgba(15,23,42,0.06)]
-      transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(15,23,42,0.12)]"
+        shadow-[0_14px_45px_rgba(15,23,42,0.06)]
+        transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_60px_rgba(15,23,42,0.12)]"
+      aria-label={`${combo.name} — Rs. ${combo.price?.toFixed(0)}`}
     >
       {/* Image */}
       <div className="relative overflow-hidden rounded-[20px]">
-        {!imgLoaded && (
-          <div className="absolute inset-0 bg-gradient-to-r from-earth-200 via-earth-100 to-earth-200 animate-pulse" />
+        {!imgLoaded && !imgError && (
+          <div className="absolute inset-0 bg-gradient-to-r from-earth-200 via-earth-100 to-earth-200 animate-pulse" aria-hidden="true" />
         )}
 
-        {image ? (
+        {image && !imgError ? (
           <img
-            src={transformImage(image)}
-            alt={combo.name}
+            src={transformImageCombo(image)}
+            srcSet={buildSrcSet(image)}
+            sizes={CARD_SIZES}
+            alt={`${combo.name} — Combo offer`}
+            width="400"
+            height="440"
+            loading={priority ? "eager" : "lazy"}
+            fetchpriority={priority ? "high" : undefined}
+            decoding={priority ? "sync" : "async"}
             onLoad={() => setImgLoaded(true)}
+            onError={() => { setImgError(true); setImgLoaded(true); }}
             className={`aspect-[1.1] sm:aspect-[1.02] w-full object-cover transition-all duration-700
-            ${imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"}
-            group-hover:scale-105`}
+              ${imgLoaded ? "opacity-100 scale-100" : "opacity-0 scale-105"}
+              group-hover:scale-105`}
           />
         ) : (
-          <div className="aspect-[1.1] flex items-center justify-center text-6xl bg-earth-50">
+          <div className="aspect-[1.1] flex items-center justify-center text-6xl bg-earth-50" role="img" aria-label={combo.name}>
             🎁
           </div>
         )}
 
-        {/* Overlay */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300" aria-hidden="true" />
 
-        {/* Combo badge */}
-        {/* <div className="absolute left-3 top-3 rounded-full bg-brand-600 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
-          Bundle
-        </div> */}
-
-        {/* Discount badge */}
         {discountPercent > 0 && (
           <div className="absolute right-3 top-3 rounded-full bg-spice-600 px-2 py-1 text-[10px] font-bold text-white">
             {discountPercent}% OFF
@@ -89,20 +91,19 @@ const ComboCard = ({ combo }) => {
         {/* Desktop hover buttons */}
         <div className="hidden sm:flex absolute bottom-3 left-3 right-3 gap-2 opacity-0 group-hover:opacity-100 transition duration-300">
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(`/combos/${combo.slug}`);
-            }}
+            onClick={handleView}
             className="flex-1 rounded-full bg-earth-950 py-2 text-xs font-semibold text-white"
+            aria-label={`View ${combo.name}`}
           >
             View
           </button>
           <button
             onClick={handleAddToCart}
             disabled={adding}
-            className="flex-1 rounded-full bg-brand-600 py-2 text-xs font-semibold text-white"
+            className="flex-1 rounded-full bg-brand-600 py-2 text-xs font-semibold text-white disabled:opacity-70"
+            aria-label={`Add ${combo.name} to cart`}
           >
-            {adding ? "..." : "Add"}
+            {adding ? "Adding…" : "Add"}
           </button>
         </div>
       </div>
@@ -127,18 +128,14 @@ const ComboCard = ({ combo }) => {
               </p>
             )}
             {savings > 0 && (
-              <p className="text-[10px] text-green-600 font-semibold">
-                Save ₹{savings}
-              </p>
+              <p className="text-[10px] text-green-600 font-semibold">Save ₹{savings}</p>
             )}
           </div>
 
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              navigate(`/combos/${combo.slug}`);
-            }}
+            onClick={handleView}
             className="flex h-8 w-8 items-center justify-center rounded-full border border-earth-200 bg-earth-50 text-earth-800 transition-all duration-300 hover:bg-earth-950 hover:text-white"
+            aria-label={`View details for ${combo.name}`}
           >
             →
           </button>
@@ -146,6 +143,7 @@ const ComboCard = ({ combo }) => {
       </div>
     </Link>
   );
-};
+});
 
+ComboCard.displayName = "ComboCard";
 export default ComboCard;

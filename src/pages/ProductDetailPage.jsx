@@ -16,7 +16,10 @@ import {
   transformImageDetail,
   transformImageThumb,
   transformImageOG,
+  buildSrcSet,
+  DETAIL_SIZES,
 } from "../utils/imageTransform";
+import { memo, useCallback } from "react";
 import api from "../api/axios";
 import { useSEO, SITE_URL } from "../hooks/useSEO";
 import Breadcrumb from "../components/common/Breadcrumb";
@@ -209,12 +212,15 @@ const ProductDetailPage = () => {
               {images[selectedImg] ? (
                 <img
                   src={transformImageDetail(images[selectedImg])}
+                  srcSet={buildSrcSet(images[selectedImg], [400, 600, 800])}
+                  sizes={DETAIL_SIZES}
                   alt={`${product.name} — Naidu Gari Ruchulu`}
                   title={product.name}
-                  width="600"
-                  height="600"
+                  width="800"
+                  height="800"
                   loading="eager"
                   fetchpriority="high"
+                  decoding="sync"
                   className="w-full h-full object-cover transition-all duration-300"
                 />
               ) : (
@@ -229,6 +235,8 @@ const ProductDetailPage = () => {
                   <button
                     key={idx}
                     onClick={() => setSelectedImg(idx)}
+                    aria-label={`View image ${idx + 1} of ${images.length}`}
+                    aria-pressed={selectedImg === idx}
                     className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
                       selectedImg === idx
                         ? "border-brand-500"
@@ -319,6 +327,8 @@ const ProductDetailPage = () => {
                         setSelectedVariant(idx);
                         setQty(1);
                       }}
+                      aria-pressed={selectedVariant === idx}
+                      aria-label={`Select size ${v.size}${v.stock === 0 ? " — out of stock" : ""}`}
                       disabled={v.stock === 0}
                       className={`px-4 py-2 rounded-xl border-2 font-body font-bold text-sm transition-all duration-150 ${
                         selectedVariant === idx

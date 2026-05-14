@@ -16,6 +16,21 @@ import toast from "react-hot-toast";
 import { transformImage } from "../utils/imageTransform";
 import { useSEO } from "../hooks/useSEO";
 
+// ── Dynamically load Razorpay SDK only when checkout is initiated ─────────────
+// This removes the 108 KB script from the critical path of every page.
+let razorpayLoaded = false;
+const loadRazorpay = () =>
+  new Promise((resolve, reject) => {
+    if (razorpayLoaded && window.Razorpay) { resolve(); return; }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => { razorpayLoaded = true; resolve(); };
+    script.onerror = () => reject(new Error("Failed to load Razorpay. Please refresh."));
+    document.head.appendChild(script);
+  });
+
+
 const STEPS = ["Address", "Payment", "Review"];
 const MAX_ADDRESSES = 5;
 
