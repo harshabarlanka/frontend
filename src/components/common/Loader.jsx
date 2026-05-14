@@ -1,18 +1,5 @@
 import { memo } from "react";
 
-// ── Inline Spinner ────────────────────────────────────────────────────────────
-const Loader = memo(({ size = "md", className = "" }) => {
-  const sizes = { sm: "h-4 w-4 border-2", md: "h-8 w-8 border-2", lg: "h-12 w-12 border-[3px]" };
-  return (
-    <div
-      role="status"
-      aria-label="Loading"
-      className={`rounded-full border-brand-200 border-t-brand-600 animate-spin ${sizes[size]} ${className}`}
-    />
-  );
-});
-Loader.displayName = "Loader";
-
 // ── Full-page loader (route Suspense fallback) ────────────────────────────────
 export const PageLoader = memo(() => (
   <div
@@ -22,9 +9,7 @@ export const PageLoader = memo(() => (
     aria-label="Loading page"
   >
     <div className="text-center">
-      <div className="text-5xl mb-4 animate-bounce" aria-hidden="true">🫙</div>
-      <Loader size="lg" className="mx-auto" />
-      <p className="mt-4 font-body text-earth-500 text-sm tracking-wide">Loading…</p>
+      <p className="font-body text-earth-500 tracking-wide text-lg"></p>
     </div>
   </div>
 ));
@@ -58,11 +43,12 @@ SkeletonList.displayName = "SkeletonList";
 
 // ── Inline loader (sections, buttons) ────────────────────────────────────────
 export const InlineLoader = memo(({ text = "Loading…" }) => (
-  <div className="flex items-center gap-3 py-8 justify-center" role="status" aria-live="polite">
-    <Loader size="sm" />
+  <div
+    className="flex items-center py-8 justify-center"
+    role="status"
+    aria-live="polite"
+  >
     <span className="font-body text-earth-500 text-sm">{text}</span>
   </div>
 ));
 InlineLoader.displayName = "InlineLoader";
-
-export default Loader;
