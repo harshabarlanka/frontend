@@ -52,3 +52,6 @@ export const InlineLoader = memo(({ text = "Loading…" }) => (
   </div>
 ));
 InlineLoader.displayName = "InlineLoader";
+
+// ── Default export for existing LoginPage import ─────────────────────────────
+export default InlineLoader;

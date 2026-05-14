@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getErrorMessage } from "../utils";
-import Loader from "../components/common/Loader";
+import { InlineLoader } from "../components/common/Loader"; // ✅ fixed import
 import toast from "react-hot-toast";
 import logo from "../assets/logo.webp"; // <-- use your actual file name
 import { useSEO } from "../hooks/useSEO";
+
 const LoginPage = () => {
   useSEO({ title: "Login to Your Account", noIndex: true });
   const { login, register } = useAuth();
@@ -115,7 +116,6 @@ const LoginPage = () => {
               alt="Naidu Gari Ruchulu"
               className="h-11 sm:h-12 md:h-14 w-auto object-contain"
             />
-            {/*  */}
           </Link>
 
           {/* Mode toggle */}
@@ -258,10 +258,9 @@ const LoginPage = () => {
               className="btn-primary w-full py-3.5 text-base mt-2"
             >
               {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader size="sm" />
-                  {mode === "login" ? "Signing in…" : "Creating account…"}
-                </span>
+                <InlineLoader
+                  text={mode === "login" ? "Signing in…" : "Creating account…"}
+                />
               ) : mode === "login" ? (
                 "Sign In →"
               ) : (
