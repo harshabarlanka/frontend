@@ -9,7 +9,6 @@ const api = axios.create({
   // Enable keep-alive for connection reuse (reduces TCP overhead)
   headers: {
     "Content-Type": "application/json",
-    "Accept-Encoding": "gzip, deflate, br",
   },
   withCredentials: false,
 });
@@ -21,7 +20,7 @@ api.interceptors.request.use(
     if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 // ─── Response interceptor: handle token refresh ───────────────────────────────
@@ -89,7 +88,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;
