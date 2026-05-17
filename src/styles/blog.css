@@ -1,0 +1,142 @@
+/*
+ * blog.css
+ * Blog-specific styles for Naidu Gari Ruchulu
+ *
+ * USAGE: Import this file in your main index.css or in BlogDetailPage.jsx:
+ *   In index.css (recommended):  @import './blog.css';
+ *   In BlogDetailPage.jsx:       import '../../styles/blog.css';
+ *
+ * These styles are intentionally scoped to .prose-blog to avoid
+ * colliding with any existing site styles.
+ */
+
+/* ── Prose Blog Container ─────────────────────────────────────────────────── */
+.prose-blog {
+  /* Constrain line length for readability — proven optimal for long-form text */
+  max-width: 68ch;
+  font-family: "Lato", sans-serif;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #4a3528; /* earth-700 */
+}
+
+/* ── Headings ─────────────────────────────────────────────────────────────── */
+.prose-blog h2 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.5rem;
+  color: #1a0f0a; /* earth-950 */
+  margin-top: 2.5rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.3;
+  scroll-margin-top: 5rem; /* offset for sticky navbar */
+}
+
+.prose-blog h3 {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.25rem;
+  color: #2d1810; /* earth-900 */
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.35;
+}
+
+/* ── Paragraphs ───────────────────────────────────────────────────────────── */
+.prose-blog p {
+  margin-bottom: 1.25rem;
+  color: #5b3a30; /* earth-700 */
+}
+
+/* ── Strong / bold ────────────────────────────────────────────────────────── */
+.prose-blog strong {
+  color: #2d1810;
+  font-weight: 700;
+}
+
+/* ── Links inside prose ───────────────────────────────────────────────────── */
+.prose-blog a {
+  color: #a84e0b; /* brand-700 */
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+.prose-blog a:hover {
+  color: #cc6d09; /* brand-600 */
+}
+
+/* ── Lists ────────────────────────────────────────────────────────────────── */
+.prose-blog ul {
+  padding-left: 0;
+  margin-bottom: 1.25rem;
+  list-style: none;
+}
+.prose-blog ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.25rem;
+  list-style: decimal;
+}
+.prose-blog ol li {
+  margin-bottom: 0.4rem;
+  color: #5b3a30;
+}
+
+/* ── Blockquotes ──────────────────────────────────────────────────────────── */
+.prose-blog blockquote {
+  border-left: 4px solid #f0a820; /* brand-400 */
+  background: #fef9ee; /* brand-50 */
+  padding: 0.75rem 1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+  color: #5b3a30;
+  margin: 1.5rem 0;
+}
+
+/* ── Images inside prose ──────────────────────────────────────────────────── */
+.prose-blog img {
+  border-radius: 0.75rem;
+  width: 100%;
+  height: auto;
+  margin: 1.5rem 0;
+  object-fit: cover;
+}
+
+/* ── Horizontal rule ──────────────────────────────────────────────────────── */
+.prose-blog hr {
+  border: none;
+  border-top: 1px solid #e4d4bf; /* earth-200 */
+  margin: 2rem 0;
+}
+
+/* ── Code (inline) ────────────────────────────────────────────────────────── */
+.prose-blog code {
+  background: #f2ebe0; /* earth-100 */
+  border-radius: 0.25rem;
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+  color: #9f2a12; /* spice-800 */
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* ── Reading progress bar (global, not scoped) ────────────────────────────── */
+/* Already handled inline in ReadingProgress component — no CSS needed. */
+
+/* ── Hide scrollbar for category tab overflow ─────────────────────────────── */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Mobile: tighter prose on small screens ──────────────────────────────── */
+@media (max-width: 640px) {
+  .prose-blog {
+    font-size: 0.9375rem; /* 15px — slightly smaller for narrow screens */
+  }
+  .prose-blog h2 {
+    font-size: 1.3rem;
+  }
+  .prose-blog h3 {
+    font-size: 1.1rem;
+  }
+}

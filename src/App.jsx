@@ -1,3 +1,8 @@
+/**
+ * App.jsx — Updated with Blog routes
+ * Added: /blog and /blog/:slug
+ * All existing routes preserved exactly as-is.
+ */
 import {
   Routes,
   Route,
@@ -41,6 +46,10 @@ const Terms = lazy(() => import("./pages/Terms"));
 const Contact = lazy(() => import("./pages/Contact"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 
+// ── NEW: Blog pages ──────────────────────────────────────────────────────────
+const BlogPage = lazy(() => import("./pages/blog/BlogPage"));
+const BlogDetailPage = lazy(() => import("./pages/blog/BlogDetailPage"));
+
 // Admin pages
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
@@ -52,7 +61,7 @@ const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
 const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
 const AdminCombos = lazy(() => import("./pages/admin/AdminCombos"));
 
-// Layout wrappers
+// Layout wrappers — unchanged
 const MainLayout = ({ children, noPad = false }) => (
   <div className="flex flex-col min-h-screen">
     <AnnouncementBar />
@@ -93,6 +102,25 @@ const App = () => (
           </MainLayout>
         }
       />
+
+      {/* ── BLOG ROUTES ──────────────────────────────────────────────────── */}
+      <Route
+        path="/blog"
+        element={
+          <MainLayout>
+            <BlogPage />
+          </MainLayout>
+        }
+      />
+      <Route
+        path="/blog/:slug"
+        element={
+          <MainLayout>
+            <BlogDetailPage />
+          </MainLayout>
+        }
+      />
+      {/* ────────────────────────────────────────────────────────────────── */}
 
       {/* Legacy redirects */}
       <Route
@@ -354,7 +382,7 @@ const App = () => (
   </Suspense>
 );
 
-// Legacy redirect helpers
+// Legacy redirect helpers — unchanged
 const LegacyRedirect = ({ to }) => {
   const { search } = useLocation();
   const [base, newSearch] = to.split("?");

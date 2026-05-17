@@ -61,6 +61,11 @@ const NAV_LINKS = [
     to: "/products?category=snacks",
     activeWhen: (sp) => sp.get("category") === "snacks",
   },
+  {
+    label: "Blog",
+    to: "/blog",
+    activeWhen: (_sp, pathname) => pathname.startsWith("/blog"),
+  },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
